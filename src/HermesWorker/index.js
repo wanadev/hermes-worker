@@ -3,7 +3,8 @@ import HermesMessenger from "../HermesMessenger/index.worker";
 export default class HermesWorker {
     constructor(workerFunction, params = {}) {
         this._params = Object.assign({
-            numberWorkers: 1
+            numberWorkers: 1, 
+            config: {}
         }, params);
 
         if (this._params.numberWorkers === "max") this._params.numberWorkers = navigator.hardwareConcurrency;
@@ -50,6 +51,7 @@ export default class HermesWorker {
                 type: "config",
                 data: {
                     workerInstance: i,
+                    ... this._params.config
                 }
             });
         }

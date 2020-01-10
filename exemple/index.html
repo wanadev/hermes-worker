@@ -13,6 +13,7 @@
             const workerFunction = () => {
                 const hermes = new HermesMessenger();
                 hermes.onload().then(() => {
+                    console.log(hermes.config)
                     console.log("Worker instance " + hermes.config.workerInstance + " is started");
                     function fibo(n) {
                         if (n === 0 || n === 1) {
@@ -47,7 +48,7 @@
                 });
             }
 
-            const worker = new hermes.HermesWorker(workerFunction, { numberWorkers: 12 });
+            const worker = new hermes.HermesWorker(workerFunction, { numberWorkers: 12, config: {__pluginurl: "my_url.com"}});
             worker.onload().then(() => {
                 console.log("Worker is ready");
 
