@@ -6,6 +6,8 @@ export default class HermesWorker {
             numberWorkers: 1
         }, params);
 
+        if (this._params.numberWorkers === "max") this._params.numberWorkers = navigator.hardwareConcurrency;
+
         this._pendingsCalls = {};
         this._loadedPromise = [];
 
