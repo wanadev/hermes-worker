@@ -1,0 +1,71 @@
+<html>
+    <head>
+        <title>Hermes Worker</title>
+        <meta charset="utf8">
+        <script src="../dist/bundle.js"></script>
+    </head>
+    <body>
+        <h1>Hermes Worker</h1>
+        <div>
+
+        </div>
+        <script>
+            const workerFunction = () => {
+                const hermes = new HermesMessenger();
+                hermes.onload().then(() => {
+                    console.log("Worker instance " + hermes.config.workerInstance + " is started");
+                    function fibo(n) {
+                        if (n === 0 || n === 1) {
+                            return 1;
+                        }
+                        return fibo(n - 1) + fibo(n - 2);
+                    }
+
+                    function add(a,b) {
+                        return a + b;
+                    }
+
+                    hermes.addMethod("add", add);
+
+                    hermes.addMethod("fibo", (number) => {
+                        console.log("Fibo in worker instance " + hermes.config.workerInstance);
+                        return fibo(number);
+                    });
+
+                    hermes.addAsyncMethod("wait", (number) => {
+                        return new Promise(resolve => {
+                            setTimeout(() => {
+                                resolve({
+                                    data: "your data",
+                                    message: "end"
+                                });
+                            }, number);
+                        });
+                    });
+
+                    hermes.ready();
+                });
+            }
+
+            const worker = new hermes.HermesWorker(workerFunction, { numberWorkers: 12 });
+            worker.onload().then(() => {
+                console.log("Worker is ready");
+
+                worker.call("wait", [50]).then(result => {
+                    console.log(result);
+                });
+                
+                worker.call('add', [1,2]).then(result => {
+                    console.log("add", result);
+                });
+
+                for(let i = 0; i < 4; i++) {
+                    worker.call('fibo', [12 + i]).then(result => {
+                        console.log("fibo", result);
+                    });
+                }
+                
+            });
+        </script>
+    </body>
+</html>
