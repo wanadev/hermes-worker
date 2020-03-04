@@ -3,11 +3,11 @@ import HermesMessenger from "../HermesMessenger/index.worker";
 export default class HermesWorker {
     constructor(workerFunction, params = {}) {
         this._params = Object.assign({
-            numberWorkers: 1, 
+            threadInstances: 1, 
             config: {}
         }, params);
 
-        if (this._params.numberWorkers === "max") this._params.numberWorkers = navigator.hardwareConcurrency;
+        if (this._params.threadInstances === "auto") this._params.threadInstances = navigator.hardwareConcurrency - 1;
 
         this._pendingsCalls = {};
         this._loadedPromise = [];
@@ -33,7 +33,7 @@ export default class HermesWorker {
     }
 
     _startWorkers() {
-        for(let i = 0; i < this._params.numberWorkers; i++) {
+        for(let i = 0; i < this._params.threadInstances; i++) {
 
             this._workerPool[i] = {
                 worker: new Worker(this._workerURL),
@@ -51,28 +51,28 @@ export default class HermesWorker {
             this._workerPool[i].worker.postMessage({
                 type: "config",
                 data: {
-                    workerInstance: i,
+                    threadInstances: i,
                     ... this._params.config
                 }
             });
         }
     }
 
-    _checkLoaded() {
-        const fullLoad = this._workerPool.every(workerObject => workerObject.load);
-        if (fullLoad) this._loadedPromise.forEach(resolve => resolve());
+    _checkWorkersLoad() {
+        const fullLoaded = this._workerPool.every(workerObject => workerObject.load);
+        if (fullLoaded) this._loadedPromise.forEach(resolve => resolve());
     }
 
     _onWorkerMessage(workerObject, anwser) {
         if (anwser.type === "loaded") {
             workerObject.load = true;
-            this._checkLoaded();
+            this._checkWorkersLoad();
         }
         else if (anwser.type === "anwser") {
-            if (this._pendingsCalls[anwser.id]) {
-                this._pendingsCalls[anwser.id].resolve(anwser.result);
-                delete this._pendingsCalls[anwser.id];
-            }
+            if (!this._pendingsCalls[anwser.id]) return;
+
+            this._pendingsCalls[anwser.id].resolve(anwser.result);
+            delete this._pendingsCalls[anwser.id];
         }
     }
 
@@ -95,21 +95,21 @@ export default class HermesWorker {
     }
 
     call(functionName, args = []) {
+        const worker = this._getNextWorker();
         return new Promise((resolve, reject) => {
-            const worker = this._getNextWorker();
-            if (worker) {
-                const data = {
-                    type: "call",
-                    id: new Date().getTime() + Math.random() * Math.random(),
-                    arguments: args,
-                    name: functionName,
-                };
-                this._pendingsCalls[data.id] = {
-                    resolve,
-                    reject,
-                };
-                worker.postMessage(data);
-            }
+            if (!worker) return reject({err: "worker not found"});
+
+            const data = {
+                type: "call",
+                id: new Date().getTime() + Math.random() * Math.random(),
+                arguments: args,
+                name: functionName,
+            };
+            this._pendingsCalls[data.id] = {
+                resolve,
+                reject,
+            };
+            worker.postMessage(data);
         });
     }
 }

@@ -10,7 +10,6 @@ let config = {
         library: 'hermes',
         libraryTarget:'umd',
         umdNamedDefine: true,
-        globalObject: 'this' //!!!This line
     },
     module: {
         rules: [

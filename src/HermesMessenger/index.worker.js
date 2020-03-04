@@ -8,12 +8,6 @@ class HermesMessenger {
         window.onmessage = event => this._onEvent(event.data);
     }
 
-    start() {
-        this._sendEvent({
-            type: "loaded"
-        })
-    }
-
     onload() {
         return new Promise(resolve => {
             this._loadedPromise.push(resolve);
@@ -71,7 +65,7 @@ class HermesMessenger {
             type: "anwser",
             id: data.id,
             result
-        })
+        });
     }
 
     _sendEvent(data) {
