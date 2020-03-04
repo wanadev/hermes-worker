@@ -24,6 +24,7 @@ export default class HermesWorker {
         return new Blob([
             "var window=this;var global=this;",
             HermesMessenger,
+            "const worker_require = n => require(n);",
             "(" + workerFunction.toString() + ")()",
         ],
         {
