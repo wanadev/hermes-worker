@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/VSerain/worker-hermes.git"
+    "url": "git+https://git.wanadev.org/vserain/worker-hermes.git"
   },
   "author": "Victor Serain",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/VSerain/worker-hermes/issues"
+    "url": "https://git.wanadev.org/vserain/worker-hermes/issues"
   },
-  "homepage": "https://github.com/VSerain/worker-hermes#readme",
+  "homepage": "https://git.wanadev.org/vserain/worker-hermes#readme",
   "devDependencies": {
     "raw-loader": "^4.0.0",
     "webpack": "^4.41.5",
