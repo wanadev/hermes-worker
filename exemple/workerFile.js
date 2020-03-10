@@ -3,6 +3,9 @@ const workerFunction = () => {
     const hermes = new HermesMessenger();
     hermes.onload().then(() => {
         console.log("Worker instance " + hermes.config.threadInstances + " is started");
+
+        console.log("testScript.test > ", test)
+
         function fibo(n) {
             if (n === 0 || n === 1) {
                 return 1;
