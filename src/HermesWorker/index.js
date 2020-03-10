@@ -33,11 +33,13 @@ export default class HermesWorker {
 
     _importScript(scriptIndex, resolver) {
         const scriptLink = this._params.scripts[scriptIndex];
-        return fetch(scriptLink)
+        return fetch(scriptLink, {
+            mode: "cors",
+        })
             .then((response) => {
                 return response.text();
             })
-            .then((contentScript) => { 
+            .then((contentScript) => {
                 this._importedScript.push(contentScript)
 
                 if (scriptIndex === this._params.scripts.length -1) return resolver();
