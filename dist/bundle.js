@@ -1,5 +1,14 @@
-var hermes =
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define("hermes", [], factory);
+	else if(typeof exports === 'object')
+		exports["hermes"] = factory();
+	else
+		root["hermes"] = factory();
+})(window, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -146,3 +155,4 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _Her
 /***/ })
 
 /******/ });
+});
