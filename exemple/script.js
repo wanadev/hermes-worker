@@ -5,6 +5,9 @@ window.onload = () => {
         scripts: [
             "https://cdn.babylonjs.com/babylon.js",
             "./importedScript/testScript.js",
+        ],
+        serializers: [
+            BABYLON_VECTOR_SERIALIZER
         ]
     });
 
@@ -19,11 +22,15 @@ window.onload = () => {
             console.log("add", result);
         });
 
-        for(let i = 0; i < 4; i++) {
+        for(let i = 0; i < 3; i++) {
             worker.call('fibo', [12 + i]).then(result => {
                 console.log("fibo", result);
             });
         }
+
+        worker.call("addVector2", [new BABYLON.Vector2(10,20), new BABYLON.Vector2(90,80)]).then(result => {
+            console.log("addVector2", result);
+        });
     });
 }
 

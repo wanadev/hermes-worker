@@ -24,6 +24,10 @@ const workerFunction = () => {
             return fibo(number);
         });
 
+        hermes.addMethod("addVector2", (vectorA, vectorB) => {
+            return vectorA.add(vectorB);
+        })
+
         hermes.addAsyncMethod("wait", (number) => {
             return new Promise(resolve => {
                 setTimeout(() => {

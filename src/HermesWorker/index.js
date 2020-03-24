@@ -1,18 +1,25 @@
 import HermesMessenger from "../HermesMessenger/index.worker";
+import HermesSerializers from "../HermesSerializers";
+import DefaultSerializer from "../HermesSerializers/defautSerializer"
 
 export default class HermesWorker {
     constructor(workerFunction, params = {}) {
         this._params = Object.assign({
             threadInstances: 1,
             scripts: [],
+            serializers: [],
             config: {}
         }, params);
 
         if (this._params.threadInstances === "auto") this._params.threadInstances = navigator.hardwareConcurrency - 1;
+        this.hermesSerializers = new HermesSerializers();
 
         this._pendingsCalls = {};
         this._loadedPromise = [];
         this._importedScripts = [];
+        this._serializers = [DefaultSerializer, ...this._params.serializers.reverse()];
+
+        this._serializers.forEach(serializer => this.hermesSerializers.addSerializer(serializer));
 
         this._importScripts().then(() => {
             this._workerBlob = this._buildWorker(workerFunction);
@@ -50,14 +57,25 @@ export default class HermesWorker {
     _buildWorker(workerFunction) {
         return new Blob([
             "var window=this;var global=this;",
+            ...this._buildHermesSerializer(),
             HermesMessenger,
             "const worker_require = n => require(n);",
+            ...this._serializers.map(serializerContent => `
+                \nwindow['__serializers__'].addSerializer({serialize: ${serializerContent.serialize}, unserialize: ${serializerContent.unserialize}});\n
+            `),
             ...this._importedScripts.map(scriptContent => `\n${scriptContent};\n `),
             "(" + workerFunction.toString() + ")()",
         ],
         {
             type: "application/javascript",
         });
+    }
+
+    _buildHermesSerializer() {
+        return [
+            `${HermesSerializers.toString()}\n`,
+            "window['__serializers__'] = new HermesSerializers();\n",
+        ];
     }
 
     _startWorkers() {
@@ -99,7 +117,7 @@ export default class HermesWorker {
         else if (anwser.type === "anwser") {
             if (!this._pendingsCalls[anwser.id]) return;
 
-            this._pendingsCalls[anwser.id].resolve(anwser.result);
+            this._pendingsCalls[anwser.id].resolve(this.hermesSerializers.unserializeArgs(anwser.result)[0]);
             delete this._pendingsCalls[anwser.id];
         }
     }
@@ -130,7 +148,7 @@ export default class HermesWorker {
             const data = {
                 type: "call",
                 id: new Date().getTime() + Math.random() * Math.random(),
-                arguments: args,
+                arguments: this.hermesSerializers.serializeArgs(args),
                 name: functionName,
             };
             this._pendingsCalls[data.id] = {

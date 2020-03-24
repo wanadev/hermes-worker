@@ -8,7 +8,7 @@ let config = {
         path: path.resolve(__dirname, "./dist"),
         filename: "./bundle.js",
         library: 'hermes',
-        libraryTarget:'umd',
+        libraryTarget:'var',
         umdNamedDefine: true,
     },
     module: {
