@@ -2,7 +2,7 @@ const workerFunction = () => {
     // This code is excuted in worker
     const hermes = new HermesMessenger();
     hermes.onload().then(() => {
-        console.log("Worker instance " + hermes.config.threadInstances + " is started");
+        console.log("Worker instance " + hermes.config.threadInstance + " is started");
 
         console.log("testScript.test > ", test)
 
@@ -20,7 +20,7 @@ const workerFunction = () => {
         hermes.addMethod("add", add);
 
         hermes.addMethod("fibo", (number) => {
-            console.log("Fibo in worker instance " + hermes.config.threadInstances);
+            console.log("Fibo in worker instance " + hermes.config.threadInstance);
             return fibo(number);
         });
 

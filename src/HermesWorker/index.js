@@ -1,9 +1,12 @@
 import HermesMessenger from "../HermesMessenger/index.worker";
+
 import HermesSerializers from "../HermesSerializers";
-import DefaultSerializer from "../HermesSerializers/defautSerializer"
+import defautSerializer from "../HermesSerializers/defautSerializer"
 
 export default class HermesWorker {
     constructor(workerFunction, params = {}) {
+        this.hermesSerializers = new HermesSerializers();
+
         this._params = Object.assign({
             threadInstances: 1,
             scripts: [],
@@ -12,12 +15,11 @@ export default class HermesWorker {
         }, params);
 
         if (this._params.threadInstances === "auto") this._params.threadInstances = navigator.hardwareConcurrency - 1;
-        this.hermesSerializers = new HermesSerializers();
 
         this._pendingsCalls = {};
         this._loadedPromise = [];
         this._importedScripts = [];
-        this._serializers = [DefaultSerializer, ...this._params.serializers.reverse()];
+        this._serializers = [defautSerializer, ...this._params.serializers.reverse()];
 
         this._serializers.forEach(serializer => this.hermesSerializers.addSerializer(serializer));
 
@@ -97,7 +99,7 @@ export default class HermesWorker {
             this._workerPool[i].worker.postMessage({
                 type: "config",
                 data: {
-                    threadInstances: i,
+                    threadInstance: i,
                     ... this._params.config
                 }
             });
