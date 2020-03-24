@@ -1,5 +1,12 @@
 window.onload = () => {
-    const worker = new hermes.HermesWorker(workerFunction, { threadInstances: "auto", config: {__pluginurl: "my_url.com"}});
+    const worker = new hermes.HermesWorker(workerFunction, { 
+        threadInstances: "auto",
+        config: {__pluginurl: "localhost:3066"},
+        scripts: [
+            "https://cdn.babylonjs.com/babylon.js",
+            "./importedScript/testScript.js",
+        ]
+    });
 
     worker.onload().then(() => {
         console.log("Worker is ready");

@@ -3,7 +3,8 @@ import HermesMessenger from "../HermesMessenger/index.worker";
 export default class HermesWorker {
     constructor(workerFunction, params = {}) {
         this._params = Object.assign({
-            threadInstances: 1, 
+            threadInstances: 1,
+            scripts: [],
             config: {}
         }, params);
 
@@ -11,13 +12,39 @@ export default class HermesWorker {
 
         this._pendingsCalls = {};
         this._loadedPromise = [];
+        this._importedScripts = [];
 
-        this._workerBlob = this._buildWorker(workerFunction);
-        this._workerURL = URL.createObjectURL(this._workerBlob);
-        this._workerPool = [];
-        this._lastWorkerCall = 0;
+        this._importScripts().then(() => {
+            this._workerBlob = this._buildWorker(workerFunction);
+            this._workerURL = URL.createObjectURL(this._workerBlob);
+            this._workerPool = [];
+            this._lastWorkerCall = 0;
+    
+            this._startWorkers();
+        });
+    }
 
-        this._startWorkers();
+    _importScripts() {
+        return new Promise(resolve => {
+            if (this._params.scripts.length === 0) return resolve();
+            this._importScript(0, resolve);
+        });
+    }
+
+    _importScript(scriptIndex, resolver) {
+        const scriptLink = this._params.scripts[scriptIndex];
+        return fetch(scriptLink, {
+            mode: "cors",
+        })
+            .then((response) => {
+                return response.text();
+            })
+            .then((contentScript) => {
+                this._importedScripts.push(contentScript)
+
+                if (scriptIndex === this._params.scripts.length -1) return resolver();
+                return this._importScript(scriptIndex + 1, resolver);
+            });
     }
 
     _buildWorker(workerFunction) {
@@ -25,6 +52,7 @@ export default class HermesWorker {
             "var window=this;var global=this;",
             HermesMessenger,
             "const worker_require = n => require(n);",
+            ...this._importedScripts.map(scriptContent => `\n${scriptContent};\n `),
             "(" + workerFunction.toString() + ")()",
         ],
         {
