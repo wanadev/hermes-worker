@@ -12,7 +12,7 @@ export default class HermesWorker {
 
         this._pendingsCalls = {};
         this._loadedPromise = [];
-        this._importedScript = [];
+        this._importedScripts = [];
 
         this._importScripts().then(() => {
             this._workerBlob = this._buildWorker(workerFunction);
@@ -40,7 +40,7 @@ export default class HermesWorker {
                 return response.text();
             })
             .then((contentScript) => {
-                this._importedScript.push(contentScript)
+                this._importedScripts.push(contentScript)
 
                 if (scriptIndex === this._params.scripts.length -1) return resolver();
                 return this._importScript(scriptIndex + 1, resolver);
@@ -52,7 +52,7 @@ export default class HermesWorker {
             "var window=this;var global=this;",
             HermesMessenger,
             "const worker_require = n => require(n);",
-            ...this._importedScript.map(scriptContent => `\n${scriptContent};\n `),
+            ...this._importedScripts.map(scriptContent => `\n${scriptContent};\n `),
             "(" + workerFunction.toString() + ")()",
         ],
         {
