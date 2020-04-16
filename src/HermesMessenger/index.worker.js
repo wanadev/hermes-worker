@@ -5,6 +5,7 @@ class HermesMessenger {
         this.config = {};
         this._loadedPromise = [];
         this._methods = {};
+        this.serializers = __serializers__;
         window.onmessage = event => this._onEvent(event.data);
     }
 
@@ -46,13 +47,17 @@ class HermesMessenger {
 
     _call(data) {
         if (this._methods[data.name]) {
+            const args = this.serializers.unserializeArgs(data.arguments);
             if (this._methods[data.name].methodType == "promise") {
-                this._methods[data.name].method(...data.arguments).then(result => {
-                    this._sendAnwser(data,result);
+                this._methods[data.name].method(...args).then(result => {
+                    const serializedResult = this.serializers.serializeArgs([result]);
+                    this._sendAnwser(data, serializedResult);
                 });
             }
             else {
-                this._sendAnwser(data, this._methods[data.name].method(...data.arguments));
+                const result = this._methods[data.name].method(...args)
+                const serializedResult = this.serializers.serializeArgs([result]);
+                this._sendAnwser(data, serializedResult);
             }
         }
         else {
