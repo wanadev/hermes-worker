@@ -4,6 +4,15 @@ import HermesSerializers from "../HermesSerializers";
 import defautSerializer from "../HermesSerializers/defautSerializer"
 
 export default class HermesWorker {
+    /**
+     * 
+     * @param {Function} workerFunction is the function instancied in worker
+     * @param {Object} params
+     * @param {Number | String} params.threadInstances is the number of tread instance (the value `auto` is equal to the number of client core available)
+     * @param {String[]} params.scripts is the urls of scriptx when inject on worker (ex: vendor), if multiTread script is download just once
+     * @param {{serialize: Function, unserialize: Function}[]} params.serializers is used to serialize the data sent and received from the worker  
+     * @param {Object} params.config is the config send to worker
+     */
     constructor(workerFunction, params = {}) {
         this.hermesSerializers = new HermesSerializers();
 
@@ -33,6 +42,9 @@ export default class HermesWorker {
         });
     }
 
+    /**
+     * A queue for import script
+     */
     _importScripts() {
         return new Promise(resolve => {
             if (this._params.scripts.length === 0) return resolve();
@@ -40,6 +52,11 @@ export default class HermesWorker {
         });
     }
 
+    /**
+     * 
+     * @param {number} scriptIndex
+     * @param {Promise.Resolve} resolver 
+     */
     _importScript(scriptIndex, resolver) {
         const scriptLink = this._params.scripts[scriptIndex];
         return fetch(scriptLink, {
@@ -56,6 +73,11 @@ export default class HermesWorker {
             });
     }
 
+    /**
+     * Create the blob of the worker
+     * 
+     * @param {Function} workerFunction 
+     */
     _buildWorker(workerFunction) {
         return new Blob([
             "var window=this;var global=this;",
@@ -73,6 +95,9 @@ export default class HermesWorker {
         });
     }
 
+    /**
+     * Build part of script contain Hermes serializers
+     */
     _buildHermesSerializer() {
         return [
             `${HermesSerializers.toString()}\n`,
@@ -80,6 +105,9 @@ export default class HermesWorker {
         ];
     }
 
+    /**
+     * Start workers
+     */
     _startWorkers() {
         for(let i = 0; i < this._params.threadInstances; i++) {
 
@@ -106,11 +134,20 @@ export default class HermesWorker {
         }
     }
 
+    /**
+     * Check if all worker is load, if is true resolve loaded promise
+     */
     _checkWorkersLoad() {
         const fullLoaded = this._workerPool.every(workerObject => workerObject.load);
         if (fullLoaded) this._loadedPromise.forEach(resolve => resolve());
     }
 
+    /**
+     * Is call by worker for talk to page
+     *
+     * @param {{load: boolean, worker: Worker}} workerObject 
+     * @param {Object} anwser 
+     */
     _onWorkerMessage(workerObject, anwser) {
         if (anwser.type === "loaded") {
             workerObject.load = true;
@@ -124,10 +161,20 @@ export default class HermesWorker {
         }
     }
 
+    /**
+     * Is call from worker in case of error is throw
+     * 
+     * TODO: Improve error handling
+     * 
+     * @param {any} error 
+     */
     _onWorkerError(error) {
         console.error(error);
     }
 
+    /**
+     * Find the next worker free for compute
+     */
     _getNextWorker() {
         let nextWorkerIndex = this._lastWorkerCall + 1;
         if (nextWorkerIndex === this._workerPool.length) nextWorkerIndex = 0;
@@ -136,12 +183,21 @@ export default class HermesWorker {
         return this._workerPool[nextWorkerIndex].worker;
     }
 
+    /**
+     * Return promise, resolve where all worker is load
+     */
     onload() {
         return new Promise(resolve => {
             this._loadedPromise.push(resolve);
         });
     }
-
+    
+    /**
+     * Call function to worker
+     * 
+     * @param {String} functionName the name of the function in worker
+     * @param {any[]} args arguments apply to the function
+     */
     call(functionName, args = []) {
         const worker = this._getNextWorker();
         return new Promise((resolve, reject) => {

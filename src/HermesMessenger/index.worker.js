@@ -1,5 +1,8 @@
 // THIS FILE IS LOAD IN WORKER
 
+/**
+ * Used in worker to talk page
+ */
 class HermesMessenger {
     constructor() {
         this.config = {};
@@ -9,18 +12,30 @@ class HermesMessenger {
         window.onmessage = event => this._onEvent(event.data);
     }
 
+    /**
+     * Return promise when worker is load
+     */
     onload() {
         return new Promise(resolve => {
             this._loadedPromise.push(resolve);
         });
     }
 
+    /**
+     * Send to the page that the worker is ready to use
+     */
     ready() {
         this._sendEvent({
             type: "loaded"
         });
     }
 
+    /**
+     * Expose the method from call by page
+     * 
+     * @param {String} methodName 
+     * @param {Function} method 
+     */
     addMethod(methodName, method) {
         this._methods[methodName] = {
             method,
@@ -28,6 +43,12 @@ class HermesMessenger {
         };
     }
 
+    /**
+     * Expose the async method from call by page
+     * 
+     * @param {String} methodName 
+     * @param {Function} method 
+     */
     addAsyncMethod(methodName, method) {
         this._methods[methodName] = {
             method,
@@ -35,6 +56,11 @@ class HermesMessenger {
         };
     }
 
+    /**
+     * Is call by page for talk to worker
+     * 
+     * @param {Object} event 
+     */
     _onEvent(event) {
         if (event.type === "config") {
             this.config = event.data;
@@ -45,6 +71,11 @@ class HermesMessenger {
         }
     }
 
+    /**
+     * Used for call worker method
+     * 
+     * @param {Object} data 
+     */
     _call(data) {
         if (this._methods[data.name]) {
             const args = this.serializers.unserializeArgs(data.arguments);
@@ -65,6 +96,10 @@ class HermesMessenger {
         }
     }
 
+    /**
+     * @param {{id: number}} data, id is the unique id of question 
+     * @param {any} result 
+     */
     _sendAnwser(data, result) {
         this._sendEvent({
             type: "anwser",
