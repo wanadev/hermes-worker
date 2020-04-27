@@ -141,13 +141,13 @@ ps: Si vous avez chargé des scripts via hermes, ceux-ci ne seront pas rechargé
 |                            |         |    Le worker est prêt      |    <===     |                             |
 |  h.onload().then(() => {   |  <===   |    Il definit la fn add    |             |                             |
 |                            |         |                            |             |                             |
-|    h.call('add', [1,2])    |  ===>   |    Sérialise les args      |             |                             |
+|    h.call('add', [1,2])    |  ===>   |    Serialize les args      |             |                             |
 |     .then(                 |         |    Envoie les données      |             |                             |
-|                            |         |    Déserialise les données |  ===>       |    add(1,2)                 |
+|                            |         |    Unserialize les données |  ===>       |    add(1,2)                 |
 |                            |         |                            |             |     a+b                     |
-|                            |         |    Sérialise la réponse    |    <===     |      3                      |
+|                            |         |    Serialize la réponse    |    <===     |      3                      |
 |                            |         |    Envoie les données      |             |                             |
-|        (r) => r === 3      |  <===   |    Déserialise la réponse  |             |                             |
+|        (r) => r === 3      |  <===   |    Unserialize la réponse  |             |                             |
 |     )                      |         |                            |             |                             |
 |  });                       |         |                            |             |                             |
 ------------------------------         ------------------------------             -------------------------------
