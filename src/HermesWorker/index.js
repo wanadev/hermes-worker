@@ -15,6 +15,7 @@ export default class HermesWorker {
      */
     constructor(workerFunction, params = {}) {
         this.hermesSerializers = new HermesSerializers();
+        this.isLoad = false;
 
         this._params = Object.assign({
             threadInstances: 1,
@@ -139,7 +140,10 @@ export default class HermesWorker {
      */
     _checkWorkersLoad() {
         const fullLoaded = this._workerPool.every(workerObject => workerObject.load);
-        if (fullLoaded) this._loadedPromise.forEach(resolve => resolve());
+        if (fullLoaded) {
+            this.isLoad = true;
+            this._loadedPromise.forEach(resolve => resolve());
+        }
     }
 
     /**
@@ -187,6 +191,7 @@ export default class HermesWorker {
      * Return promise, resolve where all worker is load
      */
     onload() {
+        if (this.isLoad) return Promise.resolve();
         return new Promise(resolve => {
             this._loadedPromise.push(resolve);
         });
