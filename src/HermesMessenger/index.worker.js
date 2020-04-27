@@ -26,7 +26,7 @@ class HermesMessenger {
      */
     ready() {
         this._sendEvent({
-            type: "loaded"
+            type: "ready"
         });
     }
 

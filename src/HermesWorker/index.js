@@ -152,7 +152,7 @@ export default class HermesWorker {
      * @param {Object} answer 
      */
     _onWorkerMessage(workerObject, answer) {
-        if (answer.type === "loaded") {
+        if (answer.type === "ready") {
             workerObject.load = true;
             this._checkWorkersLoad();
         }
