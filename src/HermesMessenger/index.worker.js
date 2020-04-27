@@ -82,13 +82,13 @@ class HermesMessenger {
             if (this._methods[data.name].methodType == "promise") {
                 this._methods[data.name].method(...args).then(result => {
                     const serializedResult = this.serializers.serializeArgs([result]);
-                    this._sendAnwser(data, serializedResult);
+                    this._sendAnswer(data, serializedResult);
                 });
             }
             else {
                 const result = this._methods[data.name].method(...args)
                 const serializedResult = this.serializers.serializeArgs([result]);
-                this._sendAnwser(data, serializedResult);
+                this._sendAnswer(data, serializedResult);
             }
         }
         else {
@@ -100,9 +100,9 @@ class HermesMessenger {
      * @param {{id: number}} data, id is the unique id of question 
      * @param {any} result 
      */
-    _sendAnwser(data, result) {
+    _sendAnswer(data, result) {
         this._sendEvent({
-            type: "anwser",
+            type: "answer",
             id: data.id,
             result
         });

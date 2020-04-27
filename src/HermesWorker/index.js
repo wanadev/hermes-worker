@@ -116,8 +116,8 @@ export default class HermesWorker {
                 load: false
             };
 
-            this._workerPool[i].worker.onmessage = (anwser) => {
-                this._onWorkerMessage(this._workerPool[i], anwser.data);
+            this._workerPool[i].worker.onmessage = (answer) => {
+                this._onWorkerMessage(this._workerPool[i], answer.data);
             }
 
             this._workerPool[i].worker.onerror = (error) => {
@@ -149,18 +149,18 @@ export default class HermesWorker {
      * Is call by worker for talk to page
      *
      * @param {{load: boolean, worker: Worker}} workerObject 
-     * @param {Object} anwser 
+     * @param {Object} answer 
      */
-    _onWorkerMessage(workerObject, anwser) {
-        if (anwser.type === "loaded") {
+    _onWorkerMessage(workerObject, answer) {
+        if (answer.type === "loaded") {
             workerObject.load = true;
             this._checkWorkersLoad();
         }
-        else if (anwser.type === "anwser") {
-            if (!this._pendingsCalls[anwser.id]) return;
+        else if (answer.type === "answer") {
+            if (!this._pendingsCalls[answer.id]) return;
 
-            this._pendingsCalls[anwser.id].resolve(this.hermesSerializers.unserializeArgs(anwser.result)[0]);
-            delete this._pendingsCalls[anwser.id];
+            this._pendingsCalls[answer.id].resolve(this.hermesSerializers.unserializeArgs(answer.result)[0]);
+            delete this._pendingsCalls[answer.id];
         }
     }
 
