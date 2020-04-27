@@ -81,12 +81,11 @@ export default class HermesWorker {
      */
     _buildWorker(workerFunction) {
         return new Blob([
-            "var window=this;var global=this;",
             ...this._buildHermesSerializer(),
             HermesMessenger,
             "const worker_require = n => require(n);",
             ...this._serializers.map(serializerContent => `
-                \nwindow['__serializers__'].addSerializer({serialize: ${serializerContent.serialize}, unserialize: ${serializerContent.unserialize}});\n
+                \nself['__serializers__'].addSerializer({serialize: ${serializerContent.serialize}, unserialize: ${serializerContent.unserialize}});\n
             `),
             ...this._importedScripts.map(scriptContent => `\n${scriptContent};\n `),
             "(" + workerFunction.toString() + ")()",
@@ -102,7 +101,7 @@ export default class HermesWorker {
     _buildHermesSerializer() {
         return [
             `${HermesSerializers.toString()}\n`,
-            "window['__serializers__'] = new HermesSerializers();\n",
+            "self['__serializers__'] = new HermesSerializers();\n",
         ];
     }
 
