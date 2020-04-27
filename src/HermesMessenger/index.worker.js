@@ -79,7 +79,7 @@ class HermesMessenger {
     _call(data) {
         if (this._methods[data.name]) {
             const args = this.serializers.unserializeArgs(data.arguments);
-            if (this._methods[data.name].methodType == "promise") {
+            if (this._methods[data.name].methodType === "promise") {
                 this._methods[data.name].method(...args).then(result => {
                     const serializedResult = this.serializers.serializeArgs([result]);
                     this._sendAnswer(data, serializedResult);
