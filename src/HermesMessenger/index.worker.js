@@ -9,7 +9,7 @@ class HermesMessenger {
         this._loadedPromise = [];
         this._methods = {};
         this.serializers = __serializers__;
-        window.onmessage = event => this._onEvent(event.data);
+        window.addEventListener("message", event => this._onEvent(event.data))
     }
 
     /**
