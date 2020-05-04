@@ -8,10 +8,10 @@ export default class HermesWorker {
      * 
      * @param {Function} workerFunction is the function instancied in worker
      * @param {Object} params
-     * @param {Number | String} params.threadInstances is the number of tread instance (the value `auto` is equal to the number of client core available)
-     * @param {String[]} params.scripts is the urls of scriptx when inject on worker (ex: vendor), if multiTread script is download just once
+     * @param {Number | String} params.threadInstances is the number of thread instances (the value `auto` is equal to the number of client cores available)
+     * @param {String[]} params.scripts is the urls of scripts when inject on worker (ex: vendor), if multiThread script is downloaded just once
      * @param {{serialize: Function, unserialize: Function}[]} params.serializers is used to serialize the data sent and received from the worker  
-     * @param {Object} params.config is the config send to worker
+     * @param {Object} params.config is the config sent to worker
      */
     constructor(workerFunction, params = {}) {
         this.hermesSerializers = new HermesSerializers();
@@ -44,7 +44,7 @@ export default class HermesWorker {
     }
 
     /**
-     * A queue for import script
+     * A queue to import scripts
      */
     _importScripts() {
         return new Promise(resolve => {
@@ -96,7 +96,7 @@ export default class HermesWorker {
     }
 
     /**
-     * Build part of script contain Hermes serializers
+     * Build part of script containing Hermes serializers
      */
     _buildHermesSerializer() {
         return [
@@ -135,7 +135,7 @@ export default class HermesWorker {
     }
 
     /**
-     * Check if all worker is load, if is true resolve loaded promise
+     * Check if all workers are loaded, if is true resolve loaded promise
      */
     _checkWorkersLoad() {
         const fullLoaded = this._workerPool.every(workerObject => workerObject.load);
@@ -146,7 +146,7 @@ export default class HermesWorker {
     }
 
     /**
-     * Is call by worker for talk to page
+     * Is called by worker for talking to page
      *
      * @param {{load: boolean, worker: Worker}} workerObject 
      * @param {Object} answer 
@@ -165,7 +165,7 @@ export default class HermesWorker {
     }
 
     /**
-     * Is call from worker in case of error is throw
+     * Is called from worker in case of thrown error
      * 
      * TODO: Improve error handling
      * 
@@ -176,7 +176,7 @@ export default class HermesWorker {
     }
 
     /**
-     * Find the next worker free for compute
+     * Find the next worker free for computing
      */
     _getNextWorker() {
         let nextWorkerIndex = this._lastWorkerCall + 1;
@@ -187,7 +187,7 @@ export default class HermesWorker {
     }
 
     /**
-     * Return promise, resolve where all worker is load
+     * Return promise, resolved when workers are completely loaded
      */
     onload() {
         if (this.isLoaded) return Promise.resolve();
@@ -200,7 +200,7 @@ export default class HermesWorker {
      * Call function to worker
      * 
      * @param {String} functionName the name of the function in worker
-     * @param {any[]} args arguments apply to the function
+     * @param {any[]} args arguments applied to the function
      */
     call(functionName, args = []) {
         const worker = this._getNextWorker();
