@@ -5,7 +5,6 @@ import defautSerializer from "../HermesSerializers/defautSerializer"
 
 export default class HermesWorker {
     /**
-     * 
      * @param {Function} workerFunction is the function instancied in worker
      * @param {Object} params
      * @param {Number | String} params.threadInstances is the number of thread instances (the value `auto` is equal to the number of client cores available)
