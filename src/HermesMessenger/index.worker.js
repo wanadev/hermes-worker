@@ -1,7 +1,7 @@
 // THIS FILE IS LOAD IN WORKER
 
 /**
- * Used in worker to talk page
+ * Used in worker to talk to page
  */
 class HermesMessenger {
     constructor() {
@@ -13,7 +13,7 @@ class HermesMessenger {
     }
 
     /**
-     * Return promise when worker is load
+     * Return promise when worker is loaded
      */
     onload() {
         return new Promise(resolve => {
@@ -57,7 +57,7 @@ class HermesMessenger {
     }
 
     /**
-     * Is call by page for talk to worker
+     * Is called by page for talking to worker
      * 
      * @param {Object} event 
      */
@@ -72,7 +72,7 @@ class HermesMessenger {
     }
 
     /**
-     * Used for call worker method
+     * Used for calling worker method
      * 
      * @param {Object} data 
      */
