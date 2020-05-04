@@ -12,7 +12,7 @@ window.onload = () => {
     });
 
     worker.onload().then(() => {
-        console.log("Worker is ready");
+        console.info("Worker is ready");
 
         worker.call("wait", [50]).then(result => {
             console.log(result);

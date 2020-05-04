@@ -4,8 +4,17 @@ import HermesSerializers from "../HermesSerializers";
 import defautSerializer from "../HermesSerializers/defautSerializer"
 
 export default class HermesWorker {
+    /**
+     * @param {Function} workerFunction is the function instancied in worker
+     * @param {Object} params
+     * @param {Number | String} params.threadInstances is the number of thread instances (the value `auto` is equal to the number of client cores available)
+     * @param {String[]} params.scripts is the urls of scripts when inject on worker (ex: vendor), if multiThread script is downloaded just once
+     * @param {{serialize: Function, unserialize: Function}[]} params.serializers is used to serialize the data sent and received from the worker  
+     * @param {Object} params.config is the config sent to worker
+     */
     constructor(workerFunction, params = {}) {
         this.hermesSerializers = new HermesSerializers();
+        this.isLoaded = false;
 
         this._params = Object.assign({
             threadInstances: 1,
@@ -33,6 +42,9 @@ export default class HermesWorker {
         });
     }
 
+    /**
+     * A queue to import scripts
+     */
     _importScripts() {
         return new Promise(resolve => {
             if (this._params.scripts.length === 0) return resolve();
@@ -40,6 +52,11 @@ export default class HermesWorker {
         });
     }
 
+    /**
+     * 
+     * @param {number} scriptIndex
+     * @param {Promise.Resolve} resolver 
+     */
     _importScript(scriptIndex, resolver) {
         const scriptLink = this._params.scripts[scriptIndex];
         return fetch(scriptLink, {
@@ -56,14 +73,18 @@ export default class HermesWorker {
             });
     }
 
+    /**
+     * Create the blob of the worker
+     * 
+     * @param {Function} workerFunction 
+     */
     _buildWorker(workerFunction) {
         return new Blob([
-            "var window=this;var global=this;",
             ...this._buildHermesSerializer(),
             HermesMessenger,
             "const worker_require = n => require(n);",
             ...this._serializers.map(serializerContent => `
-                \nwindow['__serializers__'].addSerializer({serialize: ${serializerContent.serialize}, unserialize: ${serializerContent.unserialize}});\n
+                \nself['__serializers__'].addSerializer({serialize: ${serializerContent.serialize}, unserialize: ${serializerContent.unserialize}});\n
             `),
             ...this._importedScripts.map(scriptContent => `\n${scriptContent};\n `),
             "(" + workerFunction.toString() + ")()",
@@ -73,13 +94,19 @@ export default class HermesWorker {
         });
     }
 
+    /**
+     * Build part of script containing Hermes serializers
+     */
     _buildHermesSerializer() {
         return [
             `${HermesSerializers.toString()}\n`,
-            "window['__serializers__'] = new HermesSerializers();\n",
+            "self['__serializers__'] = new HermesSerializers();\n",
         ];
     }
 
+    /**
+     * Start workers
+     */
     _startWorkers() {
         for(let i = 0; i < this._params.threadInstances; i++) {
 
@@ -88,8 +115,8 @@ export default class HermesWorker {
                 load: false
             };
 
-            this._workerPool[i].worker.onmessage = (anwser) => {
-                this._onWorkerMessage(this._workerPool[i], anwser.data);
+            this._workerPool[i].worker.onmessage = (answer) => {
+                this._onWorkerMessage(this._workerPool[i], answer.data);
             }
 
             this._workerPool[i].worker.onerror = (error) => {
@@ -106,28 +133,50 @@ export default class HermesWorker {
         }
     }
 
+    /**
+     * Check if all workers are loaded, if is true resolve loaded promise
+     */
     _checkWorkersLoad() {
         const fullLoaded = this._workerPool.every(workerObject => workerObject.load);
-        if (fullLoaded) this._loadedPromise.forEach(resolve => resolve());
+        if (fullLoaded) {
+            this.isLoaded = true;
+            this._loadedPromise.forEach(resolve => resolve());
+        }
     }
 
-    _onWorkerMessage(workerObject, anwser) {
-        if (anwser.type === "loaded") {
+    /**
+     * Is called by worker for talking to page
+     *
+     * @param {{load: boolean, worker: Worker}} workerObject 
+     * @param {Object} answer 
+     */
+    _onWorkerMessage(workerObject, answer) {
+        if (answer.type === "ready") {
             workerObject.load = true;
             this._checkWorkersLoad();
         }
-        else if (anwser.type === "anwser") {
-            if (!this._pendingsCalls[anwser.id]) return;
+        else if (answer.type === "answer") {
+            if (!this._pendingsCalls[answer.id]) return;
 
-            this._pendingsCalls[anwser.id].resolve(this.hermesSerializers.unserializeArgs(anwser.result)[0]);
-            delete this._pendingsCalls[anwser.id];
+            this._pendingsCalls[answer.id].resolve(this.hermesSerializers.unserializeArgs(answer.result)[0]);
+            delete this._pendingsCalls[answer.id];
         }
     }
 
+    /**
+     * Is called from worker in case of thrown error
+     * 
+     * TODO: Improve error handling
+     * 
+     * @param {any} error 
+     */
     _onWorkerError(error) {
         console.error(error);
     }
 
+    /**
+     * Find the next worker free for computing
+     */
     _getNextWorker() {
         let nextWorkerIndex = this._lastWorkerCall + 1;
         if (nextWorkerIndex === this._workerPool.length) nextWorkerIndex = 0;
@@ -136,12 +185,22 @@ export default class HermesWorker {
         return this._workerPool[nextWorkerIndex].worker;
     }
 
+    /**
+     * Return promise, resolved when workers are completely loaded
+     */
     onload() {
+        if (this.isLoaded) return Promise.resolve();
         return new Promise(resolve => {
             this._loadedPromise.push(resolve);
         });
     }
-
+    
+    /**
+     * Call function to worker
+     * 
+     * @param {String} functionName the name of the function in worker
+     * @param {any[]} args arguments applied to the function
+     */
     call(functionName, args = []) {
         const worker = this._getNextWorker();
         return new Promise((resolve, reject) => {
