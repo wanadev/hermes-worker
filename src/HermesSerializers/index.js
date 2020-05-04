@@ -1,7 +1,7 @@
 // THIS FILE IS LOAD IN WORKER AND IN PAGE
 
 /**
- * Class use for manage the serializers, in Page and in worker
+ * Class used for managing the serializers, in Page and in worker
  */
 class HermesSerializers {
     constructor() {
