@@ -2,11 +2,10 @@
 
 
 module.exports =  {
-
-    serialize: function (args) {
+    serialize: (args) => {
         "use strict";
 
-        var typedArray = [
+        const typedArray = [
             "Int8Array",
             "Uint8Array",
             "Uint8ClampedArray",
@@ -15,19 +14,19 @@ module.exports =  {
             "Int32Array",
             "Uint32Array",
             "Float32Array",
-            "Float64Array"
+            "Float64Array",
         ];
-        var serializedArgs = [];
-        var transferable = [];
+        const serializedArgs = [];
+        const transferable = [];
 
-        for (var i = 0 ; i < args.length ; i++) {
+        for (let i = 0; i < args.length; i++) {
             if (args[i] instanceof Error) {
-                var obj = {
+                const obj = {
                     type: "Error",
-                    value: {name: args[i].name}
+                    value: { name: args[i].name },
                 };
-                var keys = Object.getOwnPropertyNames(args[i]);
-                for (var k = 0 ; k < keys.length ; k++) {
+                const keys = Object.getOwnPropertyNames(args[i]);
+                for (let k = 0; k < keys.length; k++) {
                     obj.value[keys[k]] = args[i][keys[k]];
                 }
                 serializedArgs.push(obj);
@@ -35,7 +34,7 @@ module.exports =  {
                 transferable.push(args[i].buffer);
                 serializedArgs.push({
                     type: "DataView",
-                    value: args[i].buffer
+                    value: args[i].buffer,
                 });
             } else {
                 // transferable: ArrayBuffer
@@ -48,7 +47,7 @@ module.exports =  {
 
                 // tranferable: TypedArray
                 } else {
-                    for (var t = 0 ; t < typedArray.length ; t++) {
+                    for (let t = 0; t < typedArray.length; t++) {
                         if (args[i] instanceof self[typedArray[t]]) {
                             transferable.push(args[i].buffer);
                             break;
@@ -58,41 +57,44 @@ module.exports =  {
 
                 serializedArgs.push({
                     type: "arg",
-                    value: args[i]
+                    value: args[i],
                 });
             }
         }
 
         return {
             args: serializedArgs,
-            transferable: transferable
+            transferable,
         };
     },
 
-    unserialize: function (data) {
+    unserialize: (data) => {
         "use strict";
+
         const serializedArgs = data.args || [];
 
-        var args = [];
+        const args = [];
 
-        for (var i = 0 ; i < serializedArgs.length ; i++) {
-
+        for (let i = 0; i < serializedArgs.length; i++) {
             switch (serializedArgs[i].type) {
                 case "arg":
                     args.push(serializedArgs[i].value);
                     break;
                 case "Error":
-                    var obj = new Error();
-                    for (var key in serializedArgs[i].value) {
+                    const obj = new Error();
+                    for (const key in serializedArgs[i].value) {
                         obj[key] = serializedArgs[i].value[key];
                     }
                     args.push(obj);
                     break;
                 case "DataView":
                     args.push(new DataView(serializedArgs[i].value));
+                    break;
+                default:
+                    break;
             }
         }
 
         return args;
-    }
+    },
 };

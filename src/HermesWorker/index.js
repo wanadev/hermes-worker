@@ -1,7 +1,7 @@
 import HermesMessenger from "../HermesMessenger/index.worker";
 
 import HermesSerializers from "../HermesSerializers";
-import defautSerializer from "../HermesSerializers/defautSerializer"
+import defautSerializer from "../HermesSerializers/defautSerializer";
 
 export default class HermesWorker {
     /**
@@ -9,7 +9,7 @@ export default class HermesWorker {
      * @param {Object} params
      * @param {Number | String} params.threadInstances is the number of thread instances (the value `auto` is equal to the number of client cores available)
      * @param {String[]} params.scripts is the urls of scripts when inject on worker (ex: vendor), if multiThread script is downloaded just once
-     * @param {{serialize: Function, unserialize: Function}[]} params.serializers is used to serialize the data sent and received from the worker  
+     * @param {{serialize: Function, unserialize: Function}[]} params.serializers is used to serialize the data sent and received from the worker
      * @param {Object} params.config is the config sent to worker
      */
     constructor(workerFunction, params = {}) {
@@ -20,7 +20,7 @@ export default class HermesWorker {
             threadInstances: 1,
             scripts: [],
             serializers: [],
-            config: {}
+            config: {},
         }, params);
 
         if (this._params.threadInstances === "auto") this._params.threadInstances = navigator.hardwareConcurrency - 1;
@@ -37,7 +37,7 @@ export default class HermesWorker {
             this._workerURL = URL.createObjectURL(this._workerBlob);
             this._workerPool = [];
             this._lastWorkerCall = 0;
-    
+
             this._startWorkers();
         });
     }
@@ -46,37 +46,35 @@ export default class HermesWorker {
      * A queue to import scripts
      */
     _importScripts() {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             if (this._params.scripts.length === 0) return resolve();
             this._importScript(0, resolve);
         });
     }
 
     /**
-     * 
+     *
      * @param {number} scriptIndex
-     * @param {Promise.Resolve} resolver 
+     * @param {Promise.Resolve} resolver
      */
     _importScript(scriptIndex, resolver) {
         const scriptLink = this._params.scripts[scriptIndex];
         return fetch(scriptLink, {
             mode: "cors",
         })
-            .then((response) => {
-                return response.text();
-            })
+            .then(response => response.text())
             .then((contentScript) => {
-                this._importedScripts.push(contentScript)
+                this._importedScripts.push(contentScript);
 
-                if (scriptIndex === this._params.scripts.length -1) return resolver();
+                if (scriptIndex === this._params.scripts.length - 1) return resolver();
                 return this._importScript(scriptIndex + 1, resolver);
             });
     }
 
     /**
      * Create the blob of the worker
-     * 
-     * @param {Function} workerFunction 
+     *
+     * @param {Function} workerFunction
      */
     _buildWorker(workerFunction) {
         return new Blob([
@@ -108,27 +106,27 @@ export default class HermesWorker {
      * Start workers
      */
     _startWorkers() {
-        for(let i = 0; i < this._params.threadInstances; i++) {
+        for (let i = 0; i < this._params.threadInstances; i++) {
 
             this._workerPool[i] = {
                 worker: new Worker(this._workerURL),
-                load: false
+                load: false,
             };
 
             this._workerPool[i].worker.onmessage = (answer) => {
                 this._onWorkerMessage(this._workerPool[i], answer.data);
-            }
+            };
 
             this._workerPool[i].worker.onerror = (error) => {
                 this._onWorkerError(error);
-            }
+            };
 
             this._workerPool[i].worker.postMessage({
                 type: "config",
                 data: {
                     threadInstance: i,
-                    ... this._params.config
-                }
+                    ...this._params.config,
+                },
             });
         }
     }
@@ -147,15 +145,14 @@ export default class HermesWorker {
     /**
      * Is called by worker for talking to page
      *
-     * @param {{load: boolean, worker: Worker}} workerObject 
-     * @param {Object} answer 
+     * @param {{load: boolean, worker: Worker}} workerObject
+     * @param {Object} answer
      */
     _onWorkerMessage(workerObject, answer) {
         if (answer.type === "ready") {
             workerObject.load = true;
             this._checkWorkersLoad();
-        }
-        else if (answer.type === "answer") {
+        } else if (answer.type === "answer") {
             if (!this._pendingsCalls[answer.id]) return;
 
             this._pendingsCalls[answer.id].resolve(this.hermesSerializers.unserializeArgs(answer.result)[0]);
@@ -165,10 +162,10 @@ export default class HermesWorker {
 
     /**
      * Is called from worker in case of thrown error
-     * 
+     *
      * TODO: Improve error handling
-     * 
-     * @param {any} error 
+     *
+     * @param {any} error
      */
     _onWorkerError(error) {
         console.error(error);
@@ -190,21 +187,21 @@ export default class HermesWorker {
      */
     onload() {
         if (this.isLoaded) return Promise.resolve();
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             this._loadedPromise.push(resolve);
         });
     }
-    
+
     /**
      * Call function to worker
-     * 
+     *
      * @param {String} functionName the name of the function in worker
      * @param {any[]} args arguments applied to the function
      */
     call(functionName, args = []) {
         const worker = this._getNextWorker();
         return new Promise((resolve, reject) => {
-            if (!worker) return reject({err: "worker not found"});
+            if (!worker) return reject(new Error({ err: "worker not found" }));
 
             const data = {
                 type: "call",

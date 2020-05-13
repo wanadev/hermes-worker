@@ -10,8 +10,8 @@ class HermesSerializers {
 
     /**
      * Add serializer
-     * 
-     * @param {{serialize: Function, unserialize: Function}} serializerObject 
+     *
+     * @param {{serialize: Function, unserialize: Function}} serializerObject
      */
     addSerializer(serializerObject) {
         if (!serializerObject.serialize || !serializerObject.unserialize) {
@@ -23,10 +23,10 @@ class HermesSerializers {
     /**
      * Serialize all args
      *
-     * @param {any[]} args 
+     * @param {any[]} args
      */
     serializeArgs(args) {
-        for (var i = this._serializers.length -1; i >= 0; i--) {
+        for (let i = this._serializers.length - 1; i >= 0; i--) {
             args = this._serializers[i].serialize(args);
         }
         return args;
@@ -35,12 +35,10 @@ class HermesSerializers {
     /**
      * Unserialize all args
      *
-     * @param {any[]} args 
+     * @param {any[]} args
      */
     unserializeArgs(args) {
-        return this._serializers.reduce((args, serializer) => {
-            return serializer.unserialize(args);
-        }, args);
+        return this._serializers.reduce((args, serializer) => serializer.unserialize(args), args);
     }
 }
 

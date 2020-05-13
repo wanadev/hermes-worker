@@ -1,5 +1,5 @@
 import HermesWorker from "./HermesWorker";
 
-export { 
+export {
     HermesWorker
-}
+};
