@@ -6,6 +6,7 @@
   "scripts": {
     "build": "webpack",
     "dev": "concurrently \"webpack --watch\" \"python3 -m http.server 3066\"",
+    "lint": "eslint -c ./.eslintrc.js ./src ./example",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

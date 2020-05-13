@@ -1,6 +1,6 @@
 module.exports = {
   globals: {
-    __serializers__
+    __serializers__ : true
   },
   plugins: [
     "jsdoc"
@@ -10,7 +10,6 @@ module.exports = {
     commonjs: true,
     es6: true,
     node: true,
-    mocha: true
   },
   rules: {
     quotes: ["error", "double"],

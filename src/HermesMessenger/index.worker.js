@@ -84,7 +84,7 @@ class HermesMessenger {
                     const serializedResult = this.serializers.serializeArgs([result]);
                     this._sendAnswer(data, serializedResult);
                 });
-            }else{
+            } else {
                 const result = this._methods[data.name].method(...args);
                 const serializedResult = this.serializers.serializeArgs([result]);
                 this._sendAnswer(data, serializedResult);
