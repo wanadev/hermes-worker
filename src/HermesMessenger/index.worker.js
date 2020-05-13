@@ -1,4 +1,4 @@
-// THIS FILE IS LOAD IN WORKER
+// THIS FILE IS LOADED IN WORKER
 
 /**
  * Used in worker to talk to page
