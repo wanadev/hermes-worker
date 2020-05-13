@@ -2,8 +2,7 @@
 
 
 module.exports =  {
-
-    serialize(args) {
+    serialize: (args) => {
         "use strict";
 
         const typedArray = [
@@ -69,7 +68,7 @@ module.exports =  {
         };
     },
 
-    unserialize(data) {
+    unserialize: (data) => {
         "use strict";
 
         const serializedArgs = data.args || [];
