@@ -22,6 +22,10 @@
     "concurrently": "^5.1.0",
     "raw-loader": "^4.0.0",
     "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10"
+    "webpack-cli": "^3.3.10",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-jsdoc": "^17.1.0"
   }
 }
