@@ -105,6 +105,8 @@ Exemple:
 
 Hermes peut créer plusieurs instances d'un même worker pour que les calculs ce répartissent sur differents cores logiques du processeur !
 
+Il est possible de passer la valeur 'auto' qui instansira le nombre maximum de thread suivant chaque processeur
+
 ps: Si vous avez chargé des scripts via hermes, ceux-ci ne seront pas rechargés pour chaque thread ! ;D
 
 ```
