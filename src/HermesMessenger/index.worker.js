@@ -16,7 +16,7 @@ class HermesMessenger {
     /**
      * Return promise when worker is loaded
      */
-    onload() {
+    waitLoad() {
         return new Promise((resolve) => {
             this._loadedPromise.push(resolve);
         });
@@ -76,14 +76,13 @@ class HermesMessenger {
      *
      * @param {Object} data
      */
-    _call(data) {
+    async _call(data) {
         if (this._methods[data.name]) {
             const args = this.serializers.unserializeArgs(data.arguments);
             if (this._methods[data.name].methodType === "promise") {
-                this._methods[data.name].method(...args).then((result) => {
-                    const serializedResult = this.serializers.serializeArgs([result]);
-                    this._sendAnswer(data, serializedResult);
-                });
+                const result = await this._methods[data.name].method(...args);
+                const serializedResult = this.serializers.serializeArgs([result]);
+                this._sendAnswer(data, serializedResult);
             } else {
                 const result = this._methods[data.name].method(...args);
                 const serializedResult = this.serializers.serializeArgs([result]);
