@@ -1,4 +1,5 @@
 import HermesMessenger from "../HermesMessenger/index.worker";
+import initFunction from "./initFunction.worker";
 
 import HermesSerializers from "../HermesSerializers";
 import defautSerializer from "../HermesSerializers/defautSerializer";
@@ -14,6 +15,8 @@ export default class HermesWorker {
      */
     constructor(workerFunction, params = {}) {
         this.hermesSerializers = new HermesSerializers();
+        this.hermesMessengerUrl = URL.createObjectURL(new Blob([HermesMessenger]));
+        this.workerFunctionUrl = URL.createObjectURL(new Blob([`(${workerFunction.toString()})()`]));
         this.isLoaded = false;
 
         this._params = Object.assign({
@@ -32,8 +35,14 @@ export default class HermesWorker {
 
         this._serializers.forEach(serializer => this.hermesSerializers.addSerializer(serializer));
 
+        this._buildHermesSerializerUrl();
+        this._buildSerializersUrl();
+        this._buildInitWorkerFunction();
+
+        this.onload().then(() => this._cleanBlobUrls());
+
         this._importScripts().then(() => {
-            this._workerBlob = this._buildWorker(workerFunction);
+            this._workerBlob = this._buildWorker();
             this._workerURL = URL.createObjectURL(this._workerBlob);
             this._workerPool = [];
             this._lastWorkerCall = 0;
@@ -59,47 +68,77 @@ export default class HermesWorker {
      */
     _importScript(scriptIndex, resolver) {
         const scriptLink = this._params.scripts[scriptIndex];
-        return fetch(scriptLink, {
-            mode: "cors",
-        })
+        return fetch(scriptLink)
             .then(response => response.text())
             .then((contentScript) => {
-                this._importedScripts.push(contentScript);
-
+                this._importedScripts.push(URL.createObjectURL(new Blob([contentScript])));
                 if (scriptIndex === this._params.scripts.length - 1) return resolver();
                 return this._importScript(scriptIndex + 1, resolver);
             });
     }
 
+    _cleanBlobUrls() {
+        URL.revokeObjectURL(this.workerFunctionUrl);
+        URL.revokeObjectURL(this.hermesMessengerUrl);
+        URL.revokeObjectURL(this.hermesSerializerUrl);
+        URL.revokeObjectURL(this.initFunctionUrl);
+        URL.revokeObjectURL(this.serializersUrl);
+        this._importedScripts.forEach(url => URL.revokeObjectURL(url));
+        this._importedScripts = [];
+    }
+
     /**
      * Create the blob of the worker
-     *
-     * @param {Function} workerFunction
      */
-    _buildWorker(workerFunction) {
+    _buildWorker() {
         return new Blob([
-            ...this._buildHermesSerializer(),
-            HermesMessenger,
-            "const worker_require = n => require(n);",
-            ...this._serializers.map(serializerContent => `
-                \nself['__serializers__'].addSerializer({serialize: ${serializerContent.serialize}, unserialize: ${serializerContent.unserialize}});\n
-            `),
-            ...this._importedScripts.map(scriptContent => `\n${scriptContent};\n `),
-            "(" + workerFunction.toString() + ")()",
+            `importScripts("${this.hermesSerializerUrl}");\n`,
+            `importScripts("${this.hermesMessengerUrl}");\n`,
+            `importScripts("${this.serializersUrl}");\n`,
+            ...this._importedScripts.map(scriptUrl => `importScripts("${scriptUrl}");\n`),
+            `importScripts("${this.initFunctionUrl}");\n`,
         ],
         {
             type: "application/javascript",
         });
     }
 
+    _buildInitWorkerFunction() {
+        this.initFunctionUrl = URL.createObjectURL(new Blob([
+            initFunction.replace("$$WORKER_FUNTION_URL$$", this.workerFunctionUrl),
+        ],
+        {
+            type: "application/javascript",
+        }));
+    }
+
     /**
      * Build part of script containing Hermes serializers
      */
-    _buildHermesSerializer() {
-        return [
-            `${HermesSerializers.toString()}\n`,
-            "self['__serializers__'] = new HermesSerializers();\n",
-        ];
+    _buildHermesSerializerUrl() {
+        this.hermesSerializerUrl = URL.createObjectURL(new Blob([
+            HermesSerializers.toString(),
+            "\nself['__serializers__'] = new HermesSerializers();",
+        ],
+        {
+            type: "application/javascript",
+        }));
+    }
+
+    _buildSerializersUrl() {
+        this.serializersUrl = URL.createObjectURL(new Blob(
+            this._serializers.map(
+                serializerContent => `
+                    self['__serializers__'].addSerializer({
+                        serialize: ${serializerContent.serialize.toString()}, 
+                        unserialize: ${serializerContent.unserialize.toString()}
+                    });
+                `
+            ),
+            {
+                type: "application/javascript",
+            }
+        ));
     }
 
     /**
