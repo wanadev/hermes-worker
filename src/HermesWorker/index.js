@@ -32,6 +32,7 @@ export default class HermesWorker {
         this._loadedPromise = [];
         this._importedScripts = [];
         this._serializers = [defautSerializer, ...this._params.serializers.reverse()];
+        this.numberOfThreadInstances = this._params.threadInstances;
 
         this._serializers.forEach(serializer => this._hermesSerializers.addSerializer(serializer));
 
