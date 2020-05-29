@@ -84,6 +84,7 @@ export default class HermesWorker {
         URL.revokeObjectURL(this.initFunctionUrl);
         URL.revokeObjectURL(this.serializersUrl);
         this._importedScripts.forEach(url => URL.revokeObjectURL(url));
+        this._importedScripts = [];
     }
 
     /**
