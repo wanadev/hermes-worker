@@ -14,9 +14,9 @@ export default class HermesWorker {
      * @param {Object} params.config is the config sent to worker
      */
     constructor(workerFunction, params = {}) {
-        this.hermesSerializers = new HermesSerializers();
-        this.hermesMessengerUrl = URL.createObjectURL(new Blob([HermesMessenger]));
-        this.workerFunctionUrl = URL.createObjectURL(new Blob([`(${workerFunction.toString()})()`]));
+        this._hermesSerializers = new HermesSerializers();
+        this._hermesMessengerUrl = URL.createObjectURL(new Blob([HermesMessenger]));
+        this._workerFunctionUrl = URL.createObjectURL(new Blob([`(${workerFunction.toString()})()`]));
         this.isLoaded = false;
 
         this._params = Object.assign({
@@ -32,23 +32,24 @@ export default class HermesWorker {
         this._loadedPromise = [];
         this._importedScripts = [];
         this._serializers = [defautSerializer, ...this._params.serializers.reverse()];
+        this.numberOfThreadInstances = this._params.threadInstances;
 
-        this._serializers.forEach(serializer => this.hermesSerializers.addSerializer(serializer));
+        this._serializers.forEach(serializer => this._hermesSerializers.addSerializer(serializer));
 
         this._buildHermesSerializerUrl();
         this._buildSerializersUrl();
         this._buildInitWorkerFunction();
+        this._computeScriptsAndStartWorkers();
+    }
 
-        this.onload().then(() => this._cleanBlobUrls());
+    async _computeScriptsAndStartWorkers() {
+        await this._importScripts();
+        this._workerBlob = this._buildWorker();
+        this._workerURL = URL.createObjectURL(this._workerBlob);
+        this._workerPool = [];
+        this._lastWorkerCall = 0;
 
-        this._importScripts().then(() => {
-            this._workerBlob = this._buildWorker();
-            this._workerURL = URL.createObjectURL(this._workerBlob);
-            this._workerPool = [];
-            this._lastWorkerCall = 0;
-
-            this._startWorkers();
-        });
+        this._startWorkers();
     }
 
     /**
@@ -78,11 +79,11 @@ export default class HermesWorker {
     }
 
     _cleanBlobUrls() {
-        URL.revokeObjectURL(this.workerFunctionUrl);
-        URL.revokeObjectURL(this.hermesMessengerUrl);
-        URL.revokeObjectURL(this.hermesSerializerUrl);
-        URL.revokeObjectURL(this.initFunctionUrl);
-        URL.revokeObjectURL(this.serializersUrl);
+        URL.revokeObjectURL(this._workerFunctionUrl);
+        URL.revokeObjectURL(this._hermesMessengerUrl);
+        URL.revokeObjectURL(this._hermesSerializerUrl);
+        URL.revokeObjectURL(this._initFunctionUrl);
+        URL.revokeObjectURL(this._serializersUrl);
         this._importedScripts.forEach(url => URL.revokeObjectURL(url));
         this._importedScripts = [];
     }
@@ -91,42 +92,31 @@ export default class HermesWorker {
      * Create the blob of the worker
      */
     _buildWorker() {
-        return new Blob([
-            `importScripts("${this.hermesSerializerUrl}");\n`,
-            `importScripts("${this.hermesMessengerUrl}");\n`,
-            `importScripts("${this.serializersUrl}");\n`,
+        return this._createBlobWithArray([
+            `importScripts("${this._hermesSerializerUrl}");\n`,
+            `importScripts("${this._hermesMessengerUrl}");\n`,
+            `importScripts("${this._serializersUrl}");\n`,
             ...this._importedScripts.map(scriptUrl => `importScripts("${scriptUrl}");\n`),
-            `importScripts("${this.initFunctionUrl}");\n`,
-        ],
-        {
-            type: "application/javascript",
-        });
+            `importScripts("${this._initFunctionUrl}");\n`,
+        ]);
     }
 
     _buildInitWorkerFunction() {
-        this.initFunctionUrl = URL.createObjectURL(new Blob([
-            initFunction.replace("$$WORKER_FUNTION_URL$$", this.workerFunctionUrl),
-        ],
-        {
-            type: "application/javascript",
-        }));
+        this._initFunctionUrl = URL.createObjectURL(this._createBlobWithArray([initFunction]));
     }
 
     /**
      * Build part of script containing Hermes serializers
      */
     _buildHermesSerializerUrl() {
-        this.hermesSerializerUrl = URL.createObjectURL(new Blob([
+        this._hermesSerializerUrl = URL.createObjectURL(this._createBlobWithArray([
             HermesSerializers.toString(),
             "\nself['__serializers__'] = new HermesSerializers();",
-        ],
-        {
-            type: "application/javascript",
-        }));
+        ]));
     }
 
     _buildSerializersUrl() {
-        this.serializersUrl = URL.createObjectURL(new Blob(
+        this._serializersUrl = URL.createObjectURL(this._createBlobWithArray(
             this._serializers.map(
                 serializerContent => `
                     self['__serializers__'].addSerializer({
@@ -134,11 +124,12 @@ export default class HermesWorker {
                         unserialize: ${serializerContent.unserialize.toString()}
                     });
                 `
-            ),
-            {
-                type: "application/javascript",
-            }
+            )
         ));
+    }
+
+    _createBlobWithArray(array) {
+        return new Blob(array, { type: "application/javascript" });
     }
 
     /**
@@ -164,6 +155,7 @@ export default class HermesWorker {
                 type: "config",
                 data: {
                     threadInstance: i,
+                    _workerFunctionUrl: this._workerFunctionUrl,
                     ...this._params.config,
                 },
             });
@@ -178,6 +170,7 @@ export default class HermesWorker {
         if (fullLoaded) {
             this.isLoaded = true;
             this._loadedPromise.forEach(resolve => resolve());
+            this._cleanBlobUrls();
         }
     }
 
@@ -194,7 +187,7 @@ export default class HermesWorker {
         } else if (answer.type === "answer") {
             if (!this._pendingsCalls[answer.id]) return;
 
-            this._pendingsCalls[answer.id].resolve(this.hermesSerializers.unserializeArgs(answer.result)[0]);
+            this._pendingsCalls[answer.id].resolve(this._hermesSerializers.unserializeArgs(answer.result)[0]);
             delete this._pendingsCalls[answer.id];
         }
     }
@@ -224,7 +217,7 @@ export default class HermesWorker {
     /**
      * Return promise, resolved when workers are completely loaded
      */
-    onload() {
+    waitLoad() {
         if (this.isLoaded) return Promise.resolve();
         return new Promise((resolve) => {
             this._loadedPromise.push(resolve);
@@ -245,7 +238,7 @@ export default class HermesWorker {
             const data = {
                 type: "call",
                 id: new Date().getTime() + Math.random() * Math.random(),
-                arguments: this.hermesSerializers.serializeArgs(args),
+                arguments: this._hermesSerializers.serializeArgs(args),
                 name: functionName,
             };
             this._pendingsCalls[data.id] = {
