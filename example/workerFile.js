@@ -18,23 +18,23 @@ const workerFunction = () => {
         return a + b;
     }
 
-    hermes.addMethod("add", add);
+    hermes.on("add", add);
 
-    hermes.addMethod("fibo", (number) => {
+    hermes.on("fibo", (number) => {
         console.log("Fibo in worker instance " + hermes.config.threadInstance);
         return fibo(number);
     });
 
-    hermes.addMethod("addVector2", (vectorA, vectorB) => vectorA.add(vectorB));
+    hermes.on("addVector2", (vectorA, vectorB) => vectorA.add(vectorB));
 
-    hermes.addAsyncMethod("wait", number => new Promise((resolve) => {
+    hermes.on("wait", number => new Promise((resolve) => {
         setTimeout(() => {
             resolve({
                 data: "your data async",
                 message: "end",
             });
         }, number);
-    }));
+    }), { type: "async" });
 
     hermes.ready();
 };

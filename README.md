@@ -37,14 +37,11 @@ Hermes worker fonctione de la façon suivante :
 ```
     function WorkerFunction() {
         // This code is excuted in worker
-        const hermes = new HermesMessenger();
-        hermes.waitLoad().then(() => {
-            function add(a,b) {
-                return a + b;
-            }
-            hermes.addMethod("add", add);
-            hermes.ready();
-        });
+        function add(a,b) {
+            return a + b;
+        }
+        hermes.on("add", add);
+        hermes.ready();
     }
 
     const hermes = new hermes.HermesWorker(WorkerFunction, {});
@@ -112,11 +109,7 @@ ps: Si vous avez chargé des scripts via hermes, ceux-ci ne seront pas rechargé
 ```
     function WorkerFunction() {
         // This code is excuted in worker
-        const hermes = new HermesMessenger();
-
-        hermes.waitLoad().then(() => {
-            console.log(hermes.config.threadInstance)
-        });
+        console.log(hermes.config.threadInstance)
     }
     const hermes = new hermes.HermesWorker(WorkerFunction, {
         threadInstances: 3
