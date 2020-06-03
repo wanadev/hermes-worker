@@ -8,7 +8,7 @@ class HermesMessenger {
     constructor() {
         this.config = {};
         this._loadedPromise = [];
-        this._methods = {};
+        this._routes = {};
         this.serializers = __serializers__;
         self.addEventListener("message", event => this._onEvent(event.data));
     }
@@ -32,28 +32,18 @@ class HermesMessenger {
     }
 
     /**
-     * Expose the method from call by page
+     * Expose the callback from call by page
      *
-     * @param {String} methodName
-     * @param {Function} method
+     * @param {String} eventName
+     * @param {Function} callback
+     * @param {any} option
      */
-    addMethod(methodName, method) {
-        this._methods[methodName] = {
-            method,
-            methodType: "default",
-        };
-    }
+    on(eventName, callback, option = {}) {
+        if (!option.type) option.type = "default";
 
-    /**
-     * Expose the async method from call by page
-     *
-     * @param {String} methodName
-     * @param {Function} method
-     */
-    addAsyncMethod(methodName, method) {
-        this._methods[methodName] = {
-            method,
-            methodType: "promise",
+        this._routes[eventName] = {
+            callback,
+            option,
         };
     }
 
@@ -72,20 +62,20 @@ class HermesMessenger {
     }
 
     /**
-     * Used for calling worker method
+     * Used for calling worker route
      *
      * @param {Object} data
      */
     _call(data) {
-        if (this._methods[data.name]) {
+        if (this._routes[data.name]) {
             const args = this.serializers.unserializeArgs(data.arguments);
-            if (this._methods[data.name].methodType === "promise") {
-                this._methods[data.name].method(...args).then((result) => {
+            if (this._routes[data.name].option.type === "async") {
+                this._routes[data.name].callback(...args).then((result) => {
                     const serializedResult = this.serializers.serializeArgs([result]);
                     this._sendAnswer(data, serializedResult);
                 });
             } else {
-                const result = this._methods[data.name].method(...args);
+                const result = this._routes[data.name].callback(...args);
                 const serializedResult = this.serializers.serializeArgs([result]);
                 this._sendAnswer(data, serializedResult);
             }
