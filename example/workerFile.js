@@ -5,7 +5,7 @@ const workerFunction = () => {
     // This code is excuted in worker
     console.log("Worker instance " + hermes.config.threadInstance + " is started");
 
-    console.log("testScript.test > ", test);
+    if (hermes.config.threadInstance === 0) console.log("testScript.test > ", test);
 
     function fibo(n) {
         if (n === 0 || n === 1) {

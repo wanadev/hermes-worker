@@ -11,6 +11,7 @@ export default class HermesWorker {
      * @param {Number | String} params.threadInstances is the number of thread instances (the value `auto` is equal to the number of client cores available)
      * @param {String[]} params.scripts is the urls of scripts when inject on worker (ex: vendor), if multiThread script is downloaded just once
      * @param {{serialize: Function, unserialize: Function}[]} params.serializers is used to serialize the data sent and received from the worker
+     * @param {Boolean} params.safe if is true Hermes lock the maximum numbers a the recomended by navigator
      * @param {Object} params.config is the config sent to worker
      */
     constructor(workerFunction, params = {}) {
@@ -21,12 +22,18 @@ export default class HermesWorker {
 
         this._params = Object.assign({
             threadInstances: 1,
+            safe: true,
             scripts: [],
             serializers: [],
             config: {},
         }, params);
 
-        if (this._params.threadInstances === "auto") this._params.threadInstances = navigator.hardwareConcurrency - 1;
+        this._MAX_THREAD = navigator.hardwareConcurrency - 1;
+
+        if (this._params.threadInstances === "auto"
+            || this._params.safe && this._params.threadInstances > this._MAX_THREAD) {
+            this._params.threadInstances = this._MAX_THREAD;
+        }
 
         this._pendingsCalls = {};
         this._loadedPromise = [];
