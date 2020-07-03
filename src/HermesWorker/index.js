@@ -118,11 +118,9 @@ export default class HermesWorker {
 
     async _buildInitWorkerFunction() {
         if (this._workerIsUrl) {
-            await fetch(this._fileWorkerUrl)
-                .then(response => response.text())
-                .then((contentScript) => {
-                    this._workerFunctionUrl = URL.createObjectURL(new Blob([contentScript]));
-                });
+            const response = await fetch(this._fileWorkerUrl);
+            const contentScript = await response.text();
+            this._workerFunctionUrl = URL.createObjectURL(new Blob([contentScript]));
         }
         this._initFunctionUrl = URL.createObjectURL(this._createBlobWithArray([initFunction]));
     }
