@@ -3,7 +3,6 @@
 // eslint-disable-next-line no-unused-vars
 // const workerFunction = () => {
 // This code is excuted in worker
-console.log("Worker instance " + hermes.config.threadInstance + " is started");
 
 if (hermes.config.threadInstance === 0) console.log("testScript.test > ", test);
 

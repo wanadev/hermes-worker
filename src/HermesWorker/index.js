@@ -15,13 +15,14 @@ export default class HermesWorker {
      * @param {Object} params.config is the config sent to worker
      */
     constructor(workerFunction, params = {}) {
+        this._workerIsUrl = false;
         this._hermesSerializers = new HermesSerializers();
         this._hermesMessengerUrl = URL.createObjectURL(new Blob([HermesMessenger]));
 
         if (typeof workerFunction === "string") {
-            this._workerFunctionUrl = workerFunction;
-        }
-        else {
+            this._fileWorkerUrl = workerFunction;
+            this._workerIsUrl = true;
+        } else {
             this._workerFunctionUrl = URL.createObjectURL(new Blob([`(${workerFunction.toString()})()`]));
         }
 
@@ -52,11 +53,11 @@ export default class HermesWorker {
 
         this._buildHermesSerializerUrl();
         this._buildSerializersUrl();
-        this._buildInitWorkerFunction();
         this._computeScriptsAndStartWorkers();
     }
 
     async _computeScriptsAndStartWorkers() {
+        await this._buildInitWorkerFunction();
         await this._importScripts();
         this._workerBlob = this._buildWorker();
         this._workerURL = URL.createObjectURL(this._workerBlob);
@@ -115,7 +116,14 @@ export default class HermesWorker {
         ]);
     }
 
-    _buildInitWorkerFunction() {
+    async _buildInitWorkerFunction() {
+        if (this._workerIsUrl) {
+            await fetch(this._fileWorkerUrl)
+                .then(response => response.text())
+                .then((contentScript) => {
+                    this._workerFunctionUrl = URL.createObjectURL(new Blob([contentScript]));
+                });
+        }
         this._initFunctionUrl = URL.createObjectURL(this._createBlobWithArray([initFunction]));
     }
 
