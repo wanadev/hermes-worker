@@ -6,7 +6,7 @@ import defautSerializer from "../HermesSerializers/defautSerializer";
 
 export default class HermesWorker {
     /**
-     * @param {Function} workerFunction is the function instancied in worker
+     * @param {Function | String} workerFunction is the function instancied in worker
      * @param {Object} params
      * @param {Number | String} params.threadInstances is the number of thread instances (the value `auto` is equal to the number of client cores available)
      * @param {String[]} params.scripts is the urls of scripts when inject on worker (ex: vendor), if multiThread script is downloaded just once
@@ -17,8 +17,13 @@ export default class HermesWorker {
     constructor(workerFunction, params = {}) {
         this._hermesSerializers = new HermesSerializers();
         this._hermesMessengerUrl = URL.createObjectURL(new Blob([HermesMessenger]));
-        this._workerFunctionUrl = URL.createObjectURL(new Blob([`(${workerFunction.toString()})()`]));
-        this.isLoaded = false;
+
+        if (typeof workerFunction === "string") {
+            this._workerFunctionUrl = workerFunction;
+        }
+        else {
+            this._workerFunctionUrl = URL.createObjectURL(new Blob([`(${workerFunction.toString()})()`]));
+        }
 
         this._params = Object.assign({
             threadInstances: 1,
@@ -39,7 +44,9 @@ export default class HermesWorker {
         this._loadedPromise = [];
         this._importedScripts = [];
         this._serializers = [defautSerializer, ...this._params.serializers.reverse()];
+
         this.numberOfThreadInstances = this._params.threadInstances;
+        this.isLoaded = false;
 
         this._serializers.forEach(serializer => this._hermesSerializers.addSerializer(serializer));
 
