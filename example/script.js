@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 
 window.onload = async () => {
-    const worker = new hermes.HermesWorker("http://localhost:3066/example/workerFile.js", {
+    const worker = new hermes.HermesWorker(workerFunction, {
         threadInstances: "auto",
         config: { __pluginurl: "localhost:3066" },
         scripts: [
