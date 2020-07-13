@@ -189,6 +189,8 @@ export default class HermesWorker {
             if (!worker) return this._pendingsCalls[data.id].reject(new Error({ err: "worker not found" }));
             worker.postMessage(data);
         });
+
+        this._requestQueue = [];
     }
 
     /**
