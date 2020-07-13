@@ -118,6 +118,18 @@ ps: Si vous avez chargé des scripts via hermes, ceux-ci ne seront pas rechargé
     worker 3 => 2
 ```
 
+<======= Via Url =======>
+
+Avec Hermes vous pouvez aussi crée un worker depuis l'url d'un fichier par exemple
+
+```
+    // Dans le fichier script.js (executer coter navigateur)
+    const worker = new hermes.HermesWorker("http://localhost/example/workerFile.js");
+
+    // Dans le fichier workerFile.js
+    console.log("Worker instance " + hermes.config.threadInstance + " is started");
+```
+
 ### Schéma fonctionement
 
 ```
