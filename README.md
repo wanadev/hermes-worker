@@ -45,10 +45,8 @@ Hermes worker fonctione de la façon suivante :
     }
 
     const hermes = new hermes.HermesWorker(WorkerFunction, {});
-    hermes.waitLoad().then(() => {
-        hermes.call('add', [1, 2]).then(result => {
-            console.log(result); // result === 3
-        });
+    hermes.call('add', [1, 2]).then(result => {
+        console.log(result); // result === 3
     });
 ```
 
@@ -91,10 +89,8 @@ Exemple:
             }
         ]
     });
-    hermes.waitLoad().then(() => {
-        hermes.call('add', ["1", "2"]).then(result => {
-            console.log(result); // result === "3"
-        });
+    hermes.call('add', ["1", "2"]).then(result => {
+        console.log(result); // result === "3"
     });
 ```
 
@@ -134,7 +130,7 @@ ps: Si vous avez chargé des scripts via hermes, ceux-ci ne seront pas rechargé
 |                            |         |   Initialise le worker     |             |                             |
 |                            |         |                            |             |                             |
 |                            |         |    Le worker est prêt      |    <===     |                             |
-|  h.waitLoad().then(() => {   |  <===   |    Il definit la fn add    |             |                             |
+|  h.waitLoad().then(() => { |  <===   |    Il definit la fn add    |             |                             |
 |                            |         |                            |             |                             |
 |    h.call('add', [1,2])    |  ===>   |    Serialize les args      |             |                             |
 |     .then(                 |         |    Envoie les données      |             |                             |
