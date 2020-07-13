@@ -285,4 +285,17 @@ export default class HermesWorker {
             }
         });
     }
+
+    /**
+     * Terminate Hermes Worker and all webWorkers link to this
+     */
+    terminate() {
+        this._workerPool.forEach((workerObject) => {
+            workerObject.worker.terminate();
+        });
+
+        Object.values(this._pendingsCalls).forEach((pendingCall) => {
+            pendingCall.reject({ error: "Hermes worker is destroyed" });
+        });
+    }
 }
