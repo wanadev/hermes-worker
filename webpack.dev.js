@@ -1,7 +1,9 @@
 const path = require("path");
+const { merge } = require("webpack-merge");
+const common = require("./webpack.common.js");
 
-const config = {
-    entry: "./src/index.js",
+console.log(merge);
+module.exports = merge(common, {
     mode: "development",
     output: {
         path: path.resolve(__dirname, "./dist"),
@@ -10,13 +12,4 @@ const config = {
         libraryTarget: "umd",
         umdNamedDefine: true,
     },
-    module: {
-        rules: [
-            {
-                test: /\.worker.js$/i,
-                use: "raw-loader",
-            },
-        ],
-    },
-};
-module.exports = config;
+});

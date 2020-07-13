@@ -2,12 +2,13 @@
   "name": "worker-hermes",
   "version": "0.0.1",
   "description": "A simple lib for web Worker",
-  "main": "dist/bundle.js",
+  "main": "builds/latest.js",
   "scripts": {
     "build": "webpack",
-    "dev": "concurrently \"webpack --watch\" \"python3 -m http.server 3066\"",
+    "dev": "concurrently \"webpack --watch --config webpack.dev.js\" \"python3 -m http.server 3066\"",
     "lint": "eslint -c ./.eslintrc.js ./src ./example",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-version": "webpack --config webpack.prod.js"
   },
   "repository": {
     "type": "git",
@@ -21,12 +22,13 @@
   "homepage": "https://git.wanadev.org/vserain/worker-hermes#readme",
   "devDependencies": {
     "concurrently": "^5.1.0",
-    "raw-loader": "^4.0.0",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.2.0",
     "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-jsdoc": "^17.1.0"
+    "eslint-plugin-jsdoc": "^17.1.0",
+    "raw-loader": "^4.0.0",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-merge": "^5.0.9"
   }
 }
