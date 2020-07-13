@@ -13,9 +13,6 @@ window.onload = async () => {
         ],
     });
 
-    await worker.waitLoad();
-    console.info("Worker is ready");
-
     let result = await worker.call("wait", [50]);
     console.log("wait", result);
 

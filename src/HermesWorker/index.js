@@ -41,6 +41,7 @@ export default class HermesWorker {
             this._params.threadInstances = this._MAX_THREAD;
         }
 
+        this._requestQueue = [];
         this._pendingsCalls = {};
         this._loadedPromise = [];
         this._importedScripts = [];
@@ -191,7 +192,18 @@ export default class HermesWorker {
             this.isLoaded = true;
             this._loadedPromise.forEach(resolve => resolve());
             this._cleanBlobUrls();
+            this._applyQueue();
         }
+    }
+
+    _applyQueue() {
+        this._requestQueue.forEach((data) => {
+            const worker = this._getNextWorker();
+            if (!worker) return this._pendingsCalls[data.id].reject(new Error({ err: "worker not found" }));
+            worker.postMessage(data);
+        });
+
+        this._requestQueue = [];
     }
 
     /**
@@ -251,9 +263,7 @@ export default class HermesWorker {
      * @param {any[]} args arguments applied to the function
      */
     call(functionName, args = []) {
-        const worker = this._getNextWorker();
         return new Promise((resolve, reject) => {
-            if (!worker) return reject(new Error({ err: "worker not found" }));
 
             const data = {
                 type: "call",
@@ -265,7 +275,14 @@ export default class HermesWorker {
                 resolve,
                 reject,
             };
-            worker.postMessage(data);
+
+            if (!this.isLoaded) {
+                this._requestQueue.push(data);
+            } else {
+                const worker = this._getNextWorker();
+                if (!worker) return reject(new Error({ err: "worker not found" }));
+                worker.postMessage(data);
+            }
         });
     }
 }
