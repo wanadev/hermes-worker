@@ -7,7 +7,7 @@ const buildInfo = require("./package.json");
 const folderPath = path.resolve(__dirname, "./builds");
 
 module.exports = merge(common, {
-    mode: "production",
+    mode: "development",
     output: {
         path: folderPath,
         filename: `./hermes-${buildInfo.version}.js`,
