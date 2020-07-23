@@ -63,7 +63,7 @@ module.exports =  {
         }
 
         return {
-            args: serializedArgs,
+            args: JSON.stringify(serializedArgs),
             transferable,
         };
     },
@@ -71,7 +71,7 @@ module.exports =  {
     unserialize: (data) => {
         "use strict";
 
-        const serializedArgs = data.args || [];
+        const serializedArgs = JSON.parse(data.args) || [];
 
         const args = [];
 
