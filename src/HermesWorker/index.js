@@ -131,7 +131,7 @@ export default class HermesWorker {
      */
     _buildHermesSerializerUrl() {
         this._hermesSerializerUrl = URL.createObjectURL(this._createBlobWithArray([
-            HermesSerializers.toString(),
+            "const HermesSerializers = " + HermesSerializers.toString(),
             "\nself['__serializers__'] = new HermesSerializers();",
         ]));
     }
