@@ -17,13 +17,13 @@ export default class HermesWorker {
     constructor(workerFunction, params = {}) {
         this._workerIsUrl = false;
         this._hermesSerializers = new HermesSerializers();
-        this._hermesMessengerUrl = URL.createObjectURL(new Blob([HermesMessenger]));
+        this._hermesMessengerUrl = URL.createObjectURL(this._createBlobWithArray([HermesMessenger]));
 
         if (typeof workerFunction === "string") {
             this._fileWorkerUrl = workerFunction;
             this._workerIsUrl = true;
         } else {
-            this._workerFunctionUrl = URL.createObjectURL(new Blob([`(${workerFunction.toString()})()`]));
+            this._workerFunctionUrl = URL.createObjectURL(this._createBlobWithArray([`(${workerFunction.toString()})()`]));
         }
 
         this._params = Object.assign({
@@ -88,7 +88,7 @@ export default class HermesWorker {
         return fetch(scriptLink)
             .then(response => response.text())
             .then((contentScript) => {
-                this._importedScripts.push(URL.createObjectURL(new Blob([contentScript])));
+                this._importedScripts.push(URL.createObjectURL(this._createBlobWithArray([contentScript])));
                 if (scriptIndex === this._params.scripts.length - 1) return resolver();
                 return this._importScript(scriptIndex + 1, resolver);
             });
@@ -121,7 +121,7 @@ export default class HermesWorker {
         if (this._workerIsUrl) {
             const response = await fetch(this._fileWorkerUrl);
             const contentScript = await response.text();
-            this._workerFunctionUrl = URL.createObjectURL(new Blob([contentScript]));
+            this._workerFunctionUrl = URL.createObjectURL(new Blob(this._createBlobWithArray([contentScript])));
         }
         this._initFunctionUrl = URL.createObjectURL(this._createBlobWithArray([initFunction]));
     }
