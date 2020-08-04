@@ -109,7 +109,7 @@ export default class HermesWorker {
      */
     _buildWorker() {
         return this._createBlobWithArray([
-            `window=self;global=self;`,
+            `window=self;global=self;\n`,
             `importScripts("${this._hermesSerializerUrl}");\n`,
             `importScripts("${this._hermesMessengerUrl}");\n`,
             `importScripts("${this._serializersUrl}");\n`,
