@@ -40,16 +40,22 @@ module.exports =  {
                 // transferable: ArrayBuffer
                 if (args[i] instanceof ArrayBuffer) {
                     transferable.push(args[i]);
+                    args[i] = "hermes__transferable__" + transferable.length - 1;
 
                 // tranferable: ImageData
                 } else if ("ImageData" in self && args[i] instanceof ImageData) {
                     transferable.push(args[i].data.buffer);
-
+                    args[i] = {
+                        type: "hermes__transferable__ImageData",
+                        index: transferable.length - 1,
+                        width: args[i].width,
+                    };
                 // tranferable: TypedArray
                 } else {
                     for (let t = 0; t < typedArray.length; t++) {
                         if (args[i] instanceof self[typedArray[t]]) {
                             transferable.push(args[i].buffer);
+                            args[i] = "hermes__transferable__" + transferable.length - 1;
                             break;
                         }
                     }
@@ -70,7 +76,6 @@ module.exports =  {
 
     unserialize: (data) => {
         "use strict";
-
         const serializedArgs = JSON.parse(data.args) || [];
 
         const args = [];
@@ -78,7 +83,16 @@ module.exports =  {
         for (let i = 0; i < serializedArgs.length; i++) {
             switch (serializedArgs[i].type) {
                 case "arg":
-                    args.push(serializedArgs[i].value);
+                    if (typeof serializedArgs[i].value === "object" && serializedArgs[i].value.type === "hermes__transferable__ImageData") {
+                        const buffer = data.transferable[serializedArgs[i].value.index];
+                        args.push(new ImageData(new Uint8ClampedArray(buffer), serializedArgs[i].value.width));
+                    } else if (serializedArgs[i].value && serializedArgs[i].value.startWith && serializedArgs[i].value.startWith("hermes__transferable__")) {
+                        const transferableIndex = serializedArgs[i].value.replace("hermes__transferable__", "");
+                        args.push(data.transferable[transferableIndex]);
+                    }
+                    else {
+                        args.push(serializedArgs[i].value);
+                    }
                     break;
                 case "Error":
                     const obj = new Error();
