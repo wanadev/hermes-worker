@@ -1,6 +1,6 @@
 {
   "name": "worker-hermes",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A simple lib for web Worker",
   "main": "builds/latest.js",
   "scripts": {
