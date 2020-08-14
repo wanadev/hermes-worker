@@ -57,7 +57,7 @@ Hermes worker fonctione de la façon suivante :
 Hermes permet de charger des scripts dans votre worker pour simplifier le dévelopement, par exemple une librairie !
 
 Exemple :
-```
+```js
     function WorkerFunction() {
         // This code is excuted in worker
         const hermes = new HermesMessenger();
@@ -76,7 +76,7 @@ Hermes permet également d'utiliser vos propres serializer (Les serializers sont
 
 Exemple: 
 
-```
+```js
     const hermes = new hermes.HermesWorker(WorkerFunction, {
         serializers: [
             {
@@ -102,7 +102,7 @@ Il est possible de passer la valeur 'auto' qui instansira le nombre maximum de t
 
 ps: Si vous avez chargé des scripts via hermes, ceux-ci ne seront pas rechargés pour chaque thread ! ;D
 
-```
+```js
     function WorkerFunction() {
         // This code is excuted in worker
         console.log(hermes.config.threadInstance)
@@ -122,7 +122,7 @@ ps: Si vous avez chargé des scripts via hermes, ceux-ci ne seront pas rechargé
 
 Avec Hermes vous pouvez aussi crée un worker depuis l'url d'un fichier par exemple
 
-```
+```js
     // Dans le fichier script.js (executer coter navigateur)
     const worker = new hermes.HermesWorker("http://localhost/example/workerFile.js");
 

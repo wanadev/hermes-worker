@@ -1,0 +1,137 @@
+# Hermes Worker
+
+Hermes Worker is a small library made to simplify WebWorker usage.
+
+Hermes can be seen as an API, which you ask to compute things and returns the result.
+
+## Install
+
+Add the package to your project as a dependency:
+
+    npm install hermes-worker
+
+
+## Example
+
+```js
+const { HermesWorker } = require("hermes-worker");
+
+// Code to be run in worker side
+const workerFunction = () => {
+    // Expose a function
+    hermes.on("add", (a, b) => {
+        return a + b;
+    });
+
+    // Finish worker initialization
+    hermes.ready();
+}
+
+// Create a worker
+const hermes = new HermesWorker(workerFunction, {});
+
+// Call function "add" and retrieve anwser
+hermes.call("add", [1, 2])
+    .then(result => {
+        console.log(result); // result === 3
+    });
+```
+
+## Features
+
+- Simple communication between page and worker
+- Instanciate worker from url or function
+- Multiple instances of the same worker
+- Single external scripts import shared between worker instances
+- Serialize data between page and worker
+- Add custom serializers
+
+## Usage
+
+### Instanciate worker from url
+
+`script.js`
+```js
+const { HermesWorker } = require("hermes-worker");
+
+// Create a worker
+const hermes = new HermesWorker("workerFile.js", {});
+
+// Call function "add" and retrieve anwser
+hermes.call("add", [1, 2])
+    .then(result => {
+        console.log(result); // result === 3
+    });
+```
+`workerFile.js` 
+```js
+// Code to be run in worker side
+// Expose a function
+hermes.on("add", (a, b) => {
+    return a + b;
+});
+
+// Finish worker initialization
+hermes.ready();
+```
+
+### Multiple instances of the same worker
+
+```js
+const { HermesWorker } = require("hermes-worker");
+
+const workerFunction = () => {
+    const fibo = (n) => {
+        if (n === 0 || n === 1) {
+            return 1;
+        }
+        return fibo(n - 1) + fibo(n - 2);
+    }
+    hermes.on("fibo", (n) => fibo(n));
+    hermes.on("hello", () => {
+        console.log(`Hello world from instance ${hermes.config.threadInstance}`)
+    })
+    hermes.ready();
+}
+
+// Create two workers with same code
+const hermes = new HermesWorker(workerFunction, {
+    threadInstances: 2
+});
+
+// Run by first instance
+hermes.call("fibo", [12]);
+
+// Run by second instance
+hermes.call("fibo", [34]);
+
+hermes.call("hello"); // Output => "Hello world from instance 0"
+hermes.call("hello"); // Output => "Hello world from instance 1"
+```
+
+### Imports scripts
+
+```js
+const { HermesWorker } = require("hermes-worker");
+
+const workerFunction = () => {
+    /** HERE BABYLON IS DEFINED **/
+    hermes.on("length", (x, y) => {
+        return new BABYLON.Vector2(x, y).length();
+    });
+
+    hermes.ready();
+}
+
+// Create a worker
+const hermes = new HermesWorker(workerFunction, {
+    scripts: [
+        "https://cdn.babylonjs.com/babylon.js"
+    ]
+});
+
+hermes.call("length", [1, 0])
+    .then(result => {
+        console.log(result); // result === 1
+    });
+```
