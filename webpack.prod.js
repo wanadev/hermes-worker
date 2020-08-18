@@ -7,11 +7,11 @@ const buildInfo = require("./package.json");
 const folderPath = path.resolve(__dirname, "./builds");
 
 module.exports = merge(common, {
-    mode: "development",
+    mode: "production",
     output: {
         path: folderPath,
         filename: `./hermes-${buildInfo.version}.js`,
-        library: "hermes",
+        library: "HermesWorker",
         libraryTarget: "umd",
         umdNamedDefine: true,
     },

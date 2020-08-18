@@ -76,6 +76,7 @@ module.exports =  {
 
     unserialize: (data) => {
         "use strict";
+
         const serializedArgs = JSON.parse(data.args) || [];
 
         const args = [];
@@ -89,8 +90,7 @@ module.exports =  {
                     } else if (serializedArgs[i].value && serializedArgs[i].value.startWith && serializedArgs[i].value.startWith("hermes__transferable__")) {
                         const transferableIndex = serializedArgs[i].value.replace("hermes__transferable__", "");
                         args.push(data.transferable[transferableIndex]);
-                    }
-                    else {
+                    } else {
                         args.push(serializedArgs[i].value);
                     }
                     break;
