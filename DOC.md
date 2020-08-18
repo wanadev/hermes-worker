@@ -31,10 +31,9 @@ const workerFunction = () => {
 const hermes = new HermesWorker(workerFunction, {});
 
 // Call function "add" and retrieve anwser
-hermes.call("add", [1, 2])
-    .then(result => {
-        console.log(result); // result === 3
-    });
+hermes.call("add", [1, 2]).then(result => {
+    console.log(result); // result === 3
+});
 ```
 
 ## Features
@@ -58,10 +57,9 @@ const { HermesWorker } = require("hermes-worker");
 const hermes = new HermesWorker("workerFile.js", {});
 
 // Call function "add" and retrieve anwser
-hermes.call("add", [1, 2])
-    .then(result => {
-        console.log(result); // result === 3
-    });
+hermes.call("add", [1, 2]).then(result => {
+    console.log(result); // result === 3
+});
 ```
 `workerFile.js` 
 ```js
@@ -130,8 +128,7 @@ const hermes = new HermesWorker(workerFunction, {
     ]
 });
 
-hermes.call("length", [1, 0])
-    .then(result => {
-        console.log(result); // result === 1
-    });
+hermes.call("length", [1, 0]).then(result => {
+    console.log(result); // result === 1
+});
 ```
