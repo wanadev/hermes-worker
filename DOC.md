@@ -14,7 +14,7 @@ Add the package to your project as a dependency:
 ## Example
 
 ```js
-const { HermesWorker } = require("hermes-worker");
+const HermesWorker = require("hermes-worker");
 
 // Code to be run in worker side
 const workerFunction = () => {
@@ -51,7 +51,7 @@ hermes.call("add", [1, 2]).then(result => {
 
 `script.js`
 ```js
-const { HermesWorker } = require("hermes-worker");
+const HermesWorker = require("hermes-worker");
 
 // Create a worker
 const hermes = new HermesWorker("workerFile.js", {});
@@ -76,7 +76,7 @@ hermes.ready();
 ### Multiple instances of the same worker
 
 ```js
-const { HermesWorker } = require("hermes-worker");
+const HermesWorker = require("hermes-worker");
 
 const workerFunction = () => {
     const fibo = (n) => {
@@ -110,7 +110,7 @@ hermes.call("hello"); // Output => "Hello world from instance 1"
 ### Imports scripts
 
 ```js
-const { HermesWorker } = require("hermes-worker");
+const HermesWorker = require("hermes-worker");
 
 const workerFunction = () => {
     /** HERE BABYLON IS DEFINED **/
