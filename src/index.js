@@ -1,5 +1,3 @@
-import HermesWorker from "./HermesWorker";
+const HermesWorker = require("./HermesWorker/index");
 
-export {
-    HermesWorker
-};
+module.exports = HermesWorker;
