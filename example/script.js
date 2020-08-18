@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 
 window.onload = async () => {
-    const worker = new hermes.HermesWorker(workerFunction, {
+    const worker = new HermesWorker(workerFunction, {
         threadInstances: "auto",
         config: { __pluginurl: "localhost:3066" },
         scripts: [

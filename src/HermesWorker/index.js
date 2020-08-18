@@ -1,10 +1,10 @@
-import HermesMessenger from "../HermesMessenger/index.worker";
-import initFunction from "./initFunction.worker";
+const HermesMessenger = require("../HermesMessenger/index.worker").default;
+const initFunction = require("./initFunction.worker").default;
 
-import HermesSerializers from "../HermesSerializers";
-import defautSerializer from "../HermesSerializers/defautSerializer";
+const HermesSerializers = require("../HermesSerializers");
+const defautSerializer = require("../HermesSerializers/defautSerializer");
 
-export default class HermesWorker {
+class HermesWorker {
     /**
      * @param {Function | String} workerFunction is the function instancied in worker
      * @param {Object} params
@@ -109,7 +109,7 @@ export default class HermesWorker {
      */
     _buildWorker() {
         return this._createBlobWithArray([
-            `window=self;global=self;\n`,
+            "window=self;global=self;\n",
             `importScripts("${this._hermesSerializerUrl}");\n`,
             `importScripts("${this._hermesMessengerUrl}");\n`,
             `importScripts("${this._serializersUrl}");\n`,
@@ -300,3 +300,5 @@ export default class HermesWorker {
         });
     }
 }
+
+module.exports = HermesWorker;

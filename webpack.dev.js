@@ -7,7 +7,7 @@ module.exports = merge(common, {
     output: {
         path: path.resolve(__dirname, "./dist"),
         filename: "./bundle.js",
-        library: "hermes",
+        library: "HermesWorker",
         libraryTarget: "umd",
         umdNamedDefine: true,
     },
