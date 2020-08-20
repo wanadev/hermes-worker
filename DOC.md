@@ -119,7 +119,7 @@ const workerFunction = () => {
     });
 
     hermes.ready();
-}
+};
 
 // Create a worker
 const hermes = new HermesWorker(workerFunction, {
@@ -130,5 +130,71 @@ const hermes = new HermesWorker(workerFunction, {
 
 hermes.call("length", [1, 0]).then(result => {
     console.log(result); // result === 1
+});
+```
+
+### Serialization
+
+Data passed between page and worker are serialized to avoid data loss.
+
+List of handled types:
+- Number
+- Number[]
+- String
+- String[]
+- Object
+- Object[]
+- Error
+- TypedArray
+- ImageData
+- ArrayBuffer
+- DataView
+
+You can also create your own serializer
+
+```js
+const HermesWorker = require("hermes-worker");
+
+// Caution: Hermes only read `serialize` and `unserialize` keys
+const BabylonSerializer = {
+    serialize: (args) => {
+        return args.map((arg) => {
+            if (arg instanceof BABYLON.Vector2) {
+                return {
+                    _x: arg.x,
+                    _y: arg.y,
+                    __type__: "BABYLON.Vector2",
+                };
+            }
+            return arg;
+        });
+    },
+    unserialize: (args) => {
+        return args => args.map((arg) => {
+            if (arg.__type__ === "BABYLON.Vector2") {
+                return new BABYLON.Vector2(arg._x, arg._y);
+            }
+            return arg;
+        });
+    },
+};
+
+const workerFunction = () => {
+    hermes.on("length", (vector) => {
+        return vector.length();
+    });
+
+    hermes.ready();
+};
+
+const hermes = new HermesWorker(workerFunction, {
+    scripts: ["https://cdn.babylonjs.com/babylon.js"],
+    serializers: [
+        BabylonSerializer,
+    ],
+});
+
+hermes.call("length", [new BABYLON.Vector2(2, 0)]).then(result => {
+    console.log(result); // result === 2
 });
 ```
