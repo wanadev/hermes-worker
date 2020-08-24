@@ -155,7 +155,7 @@ You can also create your own serializer
 ```js
 const HermesWorker = require("hermes-worker");
 
-// Caution: Hermes only read `serialize` and `unserialize` keys
+// Caution: Hermes only reads `serialize` and `unserialize` keys
 const BabylonSerializer = {
     serialize: (args) => {
         return args.map((arg) => {
