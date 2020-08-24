@@ -47,7 +47,7 @@ hermes.call("add", [1, 2]).then(result => {
 
 ## Usage
 
-### Instanciate worker from url
+### Instantiate worker from url
 
 `script.js`
 ```js
