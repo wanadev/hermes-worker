@@ -2,7 +2,7 @@
 
 Hermes Worker is a small library made to simplify WebWorker usage.
 
-Hermes can be seen as an API, which you ask to compute things and returns the result.
+Hermes can be seen as an API, to which you ask to compute some things and returns the results.
 
 ## Install
 
