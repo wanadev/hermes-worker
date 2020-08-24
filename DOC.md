@@ -39,7 +39,7 @@ hermes.call("add", [1, 2]).then(result => {
 ## Features
 
 - Simple communication between page and worker
-- Instanciate worker from url or function
+- Instantiate worker from url or function
 - Multiple instances of the same worker
 - Single external scripts import shared between worker instances
 - Serialize data between page and worker
