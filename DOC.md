@@ -16,7 +16,7 @@ Add the package to your project as a dependency:
 ```js
 const HermesWorker = require("hermes-worker");
 
-// Code to be run in worker side
+// Code to be run on worker side
 const workerFunction = () => {
     // Expose a function
     hermes.on("add", (a, b) => {
@@ -30,7 +30,7 @@ const workerFunction = () => {
 // Create a worker
 const hermes = new HermesWorker(workerFunction, {});
 
-// Call function "add" and retrieve anwser
+// Call function "add" and retrieve answer
 hermes.call("add", [1, 2]).then(result => {
     console.log(result); // result === 3
 });
@@ -56,7 +56,7 @@ const HermesWorker = require("hermes-worker");
 // Create a worker
 const hermes = new HermesWorker("workerFile.js", {});
 
-// Call function "add" and retrieve anwser
+// Call function "add" and retrieve answer
 hermes.call("add", [1, 2]).then(result => {
     console.log(result); // result === 3
 });
