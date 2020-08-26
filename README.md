@@ -1,157 +1,200 @@
-todo: Traduire en Anglais
-# Worker Hermes
+# Hermes Worker
 
+Hermes Worker is a small library made to simplify WebWorker usage.
+
+In a nutshell, it is a tool which can be used by a web page for computation and which returns the result when it is ready.
+
+## Install
+
+Add the package to your project as a dependency:
+
+    npm install hermes-worker
+
+
+## Example
+
+```js
+const HermesWorker = require("hermes-worker");
+
+// Code to be run on worker side
+const workerFunction = () => {
+    // Expose a function
+    hermes.on("add", (a, b) => {
+        return a + b;
+    });
+
+    // Finish worker initialization
+    hermes.ready();
+}
+
+// Create a worker
+const hermes = new HermesWorker(workerFunction, {});
+
+// Call function "add" and retrieve answer
+hermes.call("add", [1, 2]).then(result => {
+    console.log(result); // result === 3
+});
 ```
-----------    Question     ----------  
-|        | ------------->  |        |   
-|  Page  |                 | Worker |   
-|        | <------------   |        |   
-----------     Réponse     ----------   
+
+## Features
+
+- Simple communication between page and worker
+- Instantiate worker from url or function
+- Multiple instances of the same worker
+- Single external scripts import shared between worker instances
+- Serialize data between page and worker
+- Add custom serializers
+
+## Usage
+
+### Instantiate worker from url
+
+`script.js`
+```js
+const HermesWorker = require("hermes-worker");
+
+// Create a worker
+const hermes = new HermesWorker("workerFile.js", {});
+
+// Call function "add" and retrieve answer
+hermes.call("add", [1, 2]).then(result => {
+    console.log(result); // result === 3
+});
+```
+`workerFile.js` 
+```js
+// Code to be run in worker side
+// Expose a function
+hermes.on("add", (a, b) => {
+    return a + b;
+});
+
+// Finish worker initialization
+hermes.ready();
 ```
 
+### Multiple instances of the same worker
 
-### Description :
+```js
+const HermesWorker = require("hermes-worker");
 
-Worker Hermes est une librairie qui a pour but de simplifier l'utilisation des WebWorkers !   
-Elle met en place un système de questions/réponses !
-
-### Fonctionement Géneral 
-
-Le worker peut être vu comme une api, à qui l'on demanderait de faire des calculs lourds, et qui nous répondrait avec le résultat !   
-Le principe c'est que la page web actuelle crée un nouveau worker, en lui passant le code que l'on veut exécuter.
-
-Hermes worker fonctione de la façon suivante :
-
- 1. Déclaration du contenu du worker grâce à la fonction passée en paramètre
- 2. Initialisation des serializers, pour que les données qui transitent entre le worker et la page soient toujours correctes
- 3. Instanciation du worker
- 4. Le worker définit les questions auxquelles il peut répondre
- 5. Le worker est prêt à fonctionner
- 6. Plus tard, on a demande à Hermes de transmettre la question X au worker
- 7. La question X est transmise au Worker
- 8. Le worker fait les calculs nécessaires pour y repondre
- 9. Le worker donne la réponse à Hermes
- 10. Hermes vous donne la réponse
-
-#### Utilisation simple :
-```
-    function WorkerFunction() {
-        // This code is excuted in worker
-        function add(a,b) {
-            return a + b;
+const workerFunction = () => {
+    const fibo = (n) => {
+        if (n === 0 || n === 1) {
+            return 1;
         }
-        hermes.on("add", add);
-        hermes.ready();
+        return fibo(n - 1) + fibo(n - 2);
     }
+    hermes.on("fibo", (n) => fibo(n));
+    hermes.on("hello", () => {
+        console.log(`Hello world from instance ${hermes.config.threadInstance}`)
+    })
+    hermes.ready();
+}
 
-    const hermes = new hermes.HermesWorker(WorkerFunction, {});
-    hermes.call('add', [1, 2]).then(result => {
-        console.log(result); // result === 3
+// Create two workers with same code
+const hermes = new HermesWorker(workerFunction, {
+    threadInstances: 2
+});
+
+// Run by first instance
+hermes.call("fibo", [12]);
+
+// Run by second instance
+hermes.call("fibo", [34]);
+
+hermes.call("hello"); // Output => "Hello world from instance 0"
+hermes.call("hello"); // Output => "Hello world from instance 1"
+```
+
+### Imports scripts
+
+```js
+const HermesWorker = require("hermes-worker");
+
+const workerFunction = () => {
+    /** HERE BABYLON IS DEFINED **/
+    hermes.on("length", (x, y) => {
+        return new BABYLON.Vector2(x, y).length();
     });
+
+    hermes.ready();
+};
+
+// Create a worker
+const hermes = new HermesWorker(workerFunction, {
+    scripts: [
+        "https://cdn.babylonjs.com/babylon.js"
+    ]
+});
+
+hermes.call("length", [1, 0]).then(result => {
+    console.log(result); // result === 1
+});
 ```
 
-#### Approfondir :
+### Serialization
 
-<======= Scripts =======>
+Data passed between page and worker are serialized to avoid data loss.
 
-Hermes permet de charger des scripts dans votre worker pour simplifier le dévelopement, par exemple une librairie !
+List of handled types:
+- Number
+- Number[]
+- String
+- String[]
+- Object
+- Object[]
+- Error
+- TypedArray
+- ImageData
+- ArrayBuffer
+- DataView
 
-Exemple :
-```
-    function WorkerFunction() {
-        // This code is excuted in worker
-        const hermes = new HermesMessenger();
-        /** HERE BABYLON IS DEFINED **/
-    }
-    const hermes = new hermes.HermesWorker(WorkerFunction, {
-        scripts: [
-            "https://cdn.babylonjs.com/babylon.js"
-        ]
-    });
-```
+You can also create your own serializer
 
-<======= Serializer =======>
+```js
+const HermesWorker = require("hermes-worker");
 
-Hermes permet également d'utiliser vos propres serializer (Les serializers sont appelés dans l'ordre du tableau)
-
-Exemple: 
-
-```
-    const hermes = new hermes.HermesWorker(WorkerFunction, {
-        serializers: [
-            {
-                serialize: function(args) {
-                    return args.map(arg => parseInt(arg, 10));
-                },
-                unserialize: function(args) {
-                    return args.map(arg => arg.toString());
-                }
+// Caution: Hermes only reads `serialize` and `unserialize` keys
+const BabylonSerializer = {
+    serialize: (args) => {
+        return args.map((arg) => {
+            if (arg instanceof BABYLON.Vector2) {
+                return {
+                    _x: arg.x,
+                    _y: arg.y,
+                    __type__: "BABYLON.Vector2",
+                };
             }
-        ]
-    });
-    hermes.call('add', ["1", "2"]).then(result => {
-        console.log(result); // result === "3"
-    });
-```
+            return arg;
+        });
+    },
+    unserialize: (args) => {
+        return args => args.map((arg) => {
+            if (arg.__type__ === "BABYLON.Vector2") {
+                return new BABYLON.Vector2(arg._x, arg._y);
+            }
+            return arg;
+        });
+    },
+};
 
-<======= Instance =======>
-
-Hermes peut créer plusieurs instances d'un même worker pour que les calculs ce répartissent sur differents cores logiques du processeur !
-
-Il est possible de passer la valeur 'auto' qui instansira le nombre maximum de thread suivant chaque processeur
-
-ps: Si vous avez chargé des scripts via hermes, ceux-ci ne seront pas rechargés pour chaque thread ! ;D
-
-```
-    function WorkerFunction() {
-        // This code is excuted in worker
-        console.log(hermes.config.threadInstance)
-    }
-    const hermes = new hermes.HermesWorker(WorkerFunction, {
-        threadInstances: 3
+const workerFunction = () => {
+    hermes.on("length", (vector) => {
+        return vector.length();
     });
 
-    console output:
+    hermes.ready();
+};
 
-    worker 1 => 0
-    worker 2 => 1
-    worker 3 => 2
-```
+const hermes = new HermesWorker(workerFunction, {
+    scripts: ["https://cdn.babylonjs.com/babylon.js"],
+    serializers: [
+        BabylonSerializer,
+    ],
+});
 
-<======= Via Url =======>
-
-Avec Hermes vous pouvez aussi crée un worker depuis l'url d'un fichier par exemple
-
-```
-    // Dans le fichier script.js (executer coter navigateur)
-    const worker = new hermes.HermesWorker("http://localhost/example/workerFile.js");
-
-    // Dans le fichier workerFile.js
-    console.log("Worker instance " + hermes.config.threadInstance + " is started");
-```
-
-### Schéma fonctionement
-
-```
-        Your Script                               Hermes                                    Web Worker
-------------------------------         ------------------------------             -------------------------------
-|  h=new HermesWorker(fn, {  |         |   Recupère la fonction     |             |    function add(a,b) {      |
-|       scripts,             |         |   Télécharge les scripts   |             |        return a + b;        |
-|       serializers          |  ===>   |   Ajoute les serializers   |      ===>   |    }                        |
-|  });                       |         |   Crée le script du worker |             |                             |
-|                            |         |   Initialise le worker     |             |                             |
-|                            |         |                            |             |                             |
-|                            |         |    Le worker est prêt      |    <===     |                             |
-|  h.waitLoad().then(() => { |  <===   |    Il definit la fn add    |             |                             |
-|                            |         |                            |             |                             |
-|    h.call('add', [1,2])    |  ===>   |    Serialize les args      |             |                             |
-|     .then(                 |         |    Envoie les données      |             |                             |
-|                            |         |    Unserialize les données |  ===>       |    add(1,2)                 |
-|                            |         |                            |             |     a+b                     |
-|                            |         |    Serialize la réponse    |    <===     |      3                      |
-|                            |         |    Envoie les données      |             |                             |
-|        (r) => r === 3      |  <===   |    Unserialize la réponse  |             |                             |
-|     )                      |         |                            |             |                             |
-|  });                       |         |                            |             |                             |
-------------------------------         ------------------------------             -------------------------------
+hermes.call("length", [new BABYLON.Vector2(2, 0)]).then(result => {
+    console.log(result); // result === 2
+});
 ```

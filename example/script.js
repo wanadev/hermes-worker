@@ -3,7 +3,7 @@
 window.onload = async () => {
     const worker = new HermesWorker(workerFunction, {
         threadInstances: "auto",
-        config: { __pluginurl: "localhost:3066" },
+        config: { api_url: "localhost" },
         scripts: [
             "https://cdn.babylonjs.com/babylon.js",
             "./importedScript/testScript.js",
