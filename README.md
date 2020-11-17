@@ -1,5 +1,8 @@
 # Hermes Worker
 
+[![NPM Version](https://img.shields.io/npm/v/hermes-worker.svg)][pkg-npm]
+[![License](https://img.shields.io/npm/l/hermes-worker.svg)](https://github.com/wanadev/hermes-worker/LICENSE)
+
 Hermes Worker is a small library made to simplify WebWorker usage.
 
 In a nutshell, it is a tool which can be used by a web page for computation and which returns the result when it is ready.
