@@ -1,0 +1,6 @@
+webpack.*
+.eslintrc.js
+builds/
+example/
+dist/
+.github/

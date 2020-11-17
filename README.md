@@ -198,3 +198,8 @@ hermes.call("length", [new BABYLON.Vector2(2, 0)]).then(result => {
     console.log(result); // result === 2
 });
 ```
+
+
+### Changelog
+
+* **v1.0.0:** Initial release

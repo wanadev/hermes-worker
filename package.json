@@ -1,8 +1,8 @@
 {
   "name": "hermes-worker",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "description": "A simple lib for WebWorker",
-  "main": "builds/latest.js",
+  "main": "src/index.js",
   "scripts": {
     "build": "webpack",
     "dev": "concurrently \"webpack --watch --config webpack.dev.js\" \"python3 -m http.server 3066\"",
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://git.wanadev.org/vserain/worker-hermes.git"
+    "url": "git+https://github.com/wanadev/hermes-worker.git"
   },
-  "author": "Victor Serain",
-  "license": "ISC",
+  "author": "Wanadev",
+  "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://git.wanadev.org/vserain/worker-hermes/issues"
+    "url": "https://github.com/wanadev/hermes-worker/issues"
   },
-  "homepage": "https://git.wanadev.org/vserain/worker-hermes#readme",
+  "homepage": "https://github.com/wanadev/hermes-worker#readme",
   "devDependencies": {
     "concurrently": "^5.1.0",
     "eslint": "^5.16.0",
