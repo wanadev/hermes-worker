@@ -14,6 +14,7 @@ Add the package to your project as a dependency:
 
     npm install hermes-worker
 
+Please not currently version not works on Node (Blob is not available in node)
 
 ## Example
 
