@@ -1,6 +1,7 @@
 webpack.*
 .eslintrc.js
-builds/
+builds/*
+!builds/latest.js
 example/
 dist/
 .github/

@@ -2,7 +2,7 @@
   "name": "hermes-worker",
   "version": "1.0.0",
   "description": "A simple lib for WebWorker",
-  "main": "src/index.js",
+  "main": "builds/latest.js",
   "scripts": {
     "build": "webpack",
     "dev": "concurrently \"webpack --watch --config webpack.dev.js\" \"python3 -m http.server 3066\"",
