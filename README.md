@@ -208,3 +208,4 @@ hermes.call("length", [new BABYLON.Vector2(2, 0)]).then(result => {
 ### Changelog
 
 * **v1.0.0:** Initial release
+* **v1.0.1:** Add latest file in npm
