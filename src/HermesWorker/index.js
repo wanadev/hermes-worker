@@ -282,7 +282,7 @@ class HermesWorker {
             } else {
                 const worker = this._getNextWorker();
                 if (!worker) return reject(new Error({ err: "worker not found" }));
-                worker.postMessage(data);
+                worker.postMessage(data, data.arguments.transferable);
             }
         });
     }

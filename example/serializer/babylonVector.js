@@ -26,9 +26,12 @@ const BABYLON_VECTOR_SERIALIZER = {
     },
     unserialize: (args) => {
         const _unserialize = args => args.map((arg) => {
+            if (!arg) return;
+
             if (arg instanceof Array) {
                 return _unserialize(arg);
-            } if (arg.__type__) {
+            }
+            if (arg.__type__) {
                 if (arg.__type__ === "BABYLON.Vector2") {
                     return new BABYLON.Vector2(arg._x, arg._y);
                 } if (arg.__type__ === "BABYLON.Vector3") {

@@ -36,5 +36,13 @@ const workerFunction = () => {
         }, number);
     }), { type: "async" });
 
+    hermes.on("transferable", obj => null);
+    hermes.on("logTypeArray", (typedArray) => {
+        console.log(typedArray);
+    });
+
+    hermes.on("time-transfer", (date, bigFile) => {
+        console.log(`${new Date().getTime() - date.getTime()}ms`);
+    });
     hermes.ready();
 };
