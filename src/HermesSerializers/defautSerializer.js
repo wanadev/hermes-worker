@@ -83,7 +83,7 @@ module.exports =  {
 
         return serializedArgs.args.reduce((acc, data) => {
             if (data.type === "__hermes__transferable__") {
-                if (data.type === "ImageData") {
+                if (data.className === "ImageData") {
                     acc.push(new ImageData(new Uint8ClampedArray(serializedArgs.transferable[data.index]), data.data.width));
                 } else {
                     const ConstructorTransferable = self[data.className];
