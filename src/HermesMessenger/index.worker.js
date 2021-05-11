@@ -93,10 +93,10 @@ class HermesMessenger {
             type: "answer",
             id: data.id,
             result,
-        });
+        }, result.transferable);
     }
 
-    _sendEvent(data) {
-        self.postMessage(data);
+    _sendEvent(data, transferable = []) {
+        self.postMessage(data, transferable);
     }
 }

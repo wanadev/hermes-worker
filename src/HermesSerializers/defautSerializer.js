@@ -87,7 +87,8 @@ module.exports =  {
                     acc.push(new ImageData(new Uint8ClampedArray(serializedArgs.transferable[data.index]), data.data.width));
                 } else {
                     const ConstructorTransferable = self[data.className];
-                    acc.push(new ConstructorTransferable(serializedArgs.transferable[data.index]));
+                    if (serializedArgs.transferable[data.index] instanceof ConstructorTransferable) acc.push(serializedArgs.transferable[data.index]);
+                    else acc.push(new ConstructorTransferable(serializedArgs.transferable[data.index]));
                 }
                 return acc;
             }
