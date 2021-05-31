@@ -27,4 +27,34 @@ window.onload = async () => {
 
     result = await worker.call("addVector2", [new BABYLON.Vector2(10, 20), new BABYLON.Vector2(90, 80)]);
     console.log("addVector2", result);
+
+    console.log("Send Transferable");
+    let buffer = new ArrayBuffer(16);
+    result = await worker.call("transferable", [buffer]);
+
+    if (buffer.byteLength) {
+        console.log("Transferables are not supported in your browser!");
+    } else {
+        console.log("Transferables are supported in your browser!");
+    }
+
+    buffer = new ArrayBuffer(16);
+    const typed = new Uint16Array(buffer);
+    typed.set([1, 2, 3], 0);
+    await worker.call("logTypeArray", [typed]);
+
+    console.log("Transfer 128MB");
+    const transferUInt = new Uint8Array(1024 * 1024 * 128);
+    for (let i = 0; i < transferUInt.length; ++i) {
+        transferUInt[i] = i;
+    }
+
+    await worker.call("time-transfer", [new Date(), transferUInt]);
+
+    console.log("Copy 128MB");
+    const copyUInt = new Uint8Array(1024 * 1024 * 128);
+    for (let i = 0; i < copyUInt.length; ++i) {
+        copyUInt[i] = i;
+    }
+    await worker.call("time-transfer", [new Date(), { complexObject: copyUInt }]);
 };

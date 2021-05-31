@@ -209,3 +209,6 @@ hermes.call("length", [new BABYLON.Vector2(2, 0)]).then(result => {
 
 * **v1.0.0:** Initial release
 * **v1.0.1:** Add latest file in npm
+* **v1.1.0:** 
+    * Clean Serializer
+    * Fix bug transferable

@@ -1,6 +1,3 @@
-// THIS FILE IS A COPY OF https://github.com/flozz/threadify/blob/master/src/helpers.js
-
-
 module.exports =  {
     serialize: (args) => {
         "use strict";
@@ -15,100 +12,98 @@ module.exports =  {
             "Uint32Array",
             "Float32Array",
             "Float64Array",
+            "DataView",
         ];
-        const serializedArgs = [];
-        const transferable = [];
 
-        for (let i = 0; i < args.length; i++) {
-            if (args[i] instanceof Error) {
+        const { serializedArgs, transferable } = args.reduce((acc, argument) => {
+            if (argument instanceof Error) {
                 const obj = {
                     type: "Error",
-                    value: { name: args[i].name },
+                    value: { name: argument.name },
                 };
-                const keys = Object.getOwnPropertyNames(args[i]);
-                for (let k = 0; k < keys.length; k++) {
-                    obj.value[keys[k]] = args[i][keys[k]];
-                }
-                serializedArgs.push(obj);
-            } else if (args[i] instanceof DataView) {
-                transferable.push(args[i].buffer);
-                serializedArgs.push({
-                    type: "DataView",
-                    value: args[i].buffer,
-                });
-            } else {
-                // transferable: ArrayBuffer
-                if (args[i] instanceof ArrayBuffer) {
-                    transferable.push(args[i]);
-                    args[i] = "hermes__transferable__" + transferable.length - 1;
 
-                // tranferable: ImageData
-                } else if ("ImageData" in self && args[i] instanceof ImageData) {
-                    transferable.push(args[i].data.buffer);
-                    args[i] = {
-                        type: "hermes__transferable__ImageData",
-                        index: transferable.length - 1,
-                        width: args[i].width,
-                    };
-                // tranferable: TypedArray
-                } else {
-                    for (let t = 0; t < typedArray.length; t++) {
-                        if (args[i] instanceof self[typedArray[t]]) {
-                            transferable.push(args[i].buffer);
-                            args[i] = "hermes__transferable__" + transferable.length - 1;
-                            break;
-                        }
-                    }
-                }
+                const keys = Object.getOwnPropertyNames(argument);
+                keys.reduce((acc, key) => {
+                    acc[key] = argument[key];
+                    return acc;
+                }, obj.value);
 
-                serializedArgs.push({
-                    type: "arg",
-                    value: args[i],
-                });
+                acc.serializedArgs.push(obj);
+                return acc;
             }
-        }
+
+            if (argument instanceof ArrayBuffer) {
+                acc.transferable.push(argument);
+                acc.serializedArgs.push({
+                    type: "__hermes__transferable__",
+                    className: "ArrayBuffer",
+                    index: acc.transferable.length - 1,
+                });
+                return acc;
+            }
+
+            if (argument instanceof ImageData && "ImageData" in self) {
+                acc.transferable.push(argument.data.buffer);
+                acc.serializedArgs.push({
+                    type: "__hermes__transferable__",
+                    className: "ImageData",
+                    index: acc.transferable.length - 1,
+                    data: {
+                        width: argument.width,
+                    },
+                });
+                return acc;
+            }
+
+            if (argument && typeof argument === "object" && argument.constructor.name in self && typedArray.includes(argument.constructor.name)) {
+                acc.transferable.push(argument.buffer);
+                acc.serializedArgs.push({
+                    type: "__hermes__transferable__",
+                    className: argument.constructor.name,
+                    index: acc.transferable.length - 1,
+                });
+                return acc;
+            }
+
+            acc.serializedArgs.push({
+                type: "arg",
+                value: argument,
+            });
+            return acc;
+        }, { serializedArgs: [], transferable: [] });
 
         return {
-            args: JSON.stringify(serializedArgs),
+            args: serializedArgs,
             transferable,
         };
     },
 
-    unserialize: (data) => {
+    unserialize: (serializedArgs) => {
         "use strict";
 
-        const serializedArgs = JSON.parse(data.args) || [];
-
-        const args = [];
-
-        for (let i = 0; i < serializedArgs.length; i++) {
-            switch (serializedArgs[i].type) {
-                case "arg":
-                    if (typeof serializedArgs[i].value === "object" && serializedArgs[i].value.type === "hermes__transferable__ImageData") {
-                        const buffer = data.transferable[serializedArgs[i].value.index];
-                        args.push(new ImageData(new Uint8ClampedArray(buffer), serializedArgs[i].value.width));
-                    } else if (serializedArgs[i].value && serializedArgs[i].value.startWith && serializedArgs[i].value.startWith("hermes__transferable__")) {
-                        const transferableIndex = serializedArgs[i].value.replace("hermes__transferable__", "");
-                        args.push(data.transferable[transferableIndex]);
-                    } else {
-                        args.push(serializedArgs[i].value);
-                    }
-                    break;
-                case "Error":
-                    const obj = new Error();
-                    for (const key in serializedArgs[i].value) {
-                        obj[key] = serializedArgs[i].value[key];
-                    }
-                    args.push(obj);
-                    break;
-                case "DataView":
-                    args.push(new DataView(serializedArgs[i].value));
-                    break;
-                default:
-                    break;
+        return serializedArgs.args.reduce((acc, data) => {
+            if (data.type === "__hermes__transferable__") {
+                if (data.className === "ImageData") {
+                    acc.push(new ImageData(new Uint8ClampedArray(serializedArgs.transferable[data.index]), data.data.width));
+                } else {
+                    const ConstructorTransferable = self[data.className];
+                    if (serializedArgs.transferable[data.index] instanceof ConstructorTransferable) acc.push(serializedArgs.transferable[data.index]);
+                    else acc.push(new ConstructorTransferable(serializedArgs.transferable[data.index]));
+                }
+                return acc;
             }
-        }
 
-        return args;
+            if (data.type === "Error") {
+                const obj = new Error();
+                for (const key in data.value) {
+                    obj[key] = data.value[key];
+                }
+                acc.push(obj);
+                return acc;
+            }
+
+            acc.push(data.value);
+            return acc;
+        }, []);
     },
 };
