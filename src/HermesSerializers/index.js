@@ -26,7 +26,7 @@ class HermesSerializers {
      * @param {any[]} args
      */
     serializeArgs(args) {
-        // Throw error is args is not sendable
+        // Throw error if args is not sendable
         this.checkPosibiltySend(args);
 
         for (let i = this._serializers.length - 1; i >= 0; i--) {
@@ -45,9 +45,9 @@ class HermesSerializers {
     }
 
     checkPosibiltySend(object, path = "arguments") {
-        if (typeof object === "function") throw new Error(`You try to send a function in worker, this is not possible, please remove function at ${path}`);
-        if (object instanceof Error) throw new Error(`You try to send Error in worker, this is not possible, please remove Error at ${path}`);
-        if (self.HTMLElement && object instanceof HTMLElement) throw new Error(`You try to send HTMLElement in worker, this is not possible, please remove HTMLElement at ${path}`);
+        if (typeof object === "function") throw new Error(`Worker cannot send or receive any function, please remove it at ${path}`);
+        if (object instanceof Error) throw new Error(`Worker cannot send or receive any Error, please remove it at ${path}`);
+        if (self.HTMLElement && object instanceof HTMLElement) throw new Error(`Worker cannot send or receive any HTMLElement, please remove it at ${path}`);
 
         // TypedArray
         if (ArrayBuffer.isView(object) || object instanceof ArrayBuffer) return;
