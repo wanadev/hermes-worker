@@ -27,7 +27,7 @@ class HermesSerializers {
      */
     serializeArgs(args) {
         // Throw error if args is not sendable
-        this.checkPosibiltySend(args);
+        this.checkPosibilitySend(args);
 
         for (let i = this._serializers.length - 1; i >= 0; i--) {
             args = this._serializers[i].serialize(args);
@@ -44,7 +44,7 @@ class HermesSerializers {
         return this._serializers.reduce((args, serializer) => serializer.unserialize(args), args);
     }
 
-    checkPosibiltySend(object, path = "arguments") {
+    checkPosibilitySend(object, path = "arguments") {
         if (typeof object === "function") throw new Error(`Worker cannot send or receive any function, please remove it at ${path}`);
         if (object instanceof Error) throw new Error(`Worker cannot send or receive any Error, please remove it at ${path}`);
         if (self.HTMLElement && object instanceof HTMLElement) throw new Error(`Worker cannot send or receive any HTMLElement, please remove it at ${path}`);
@@ -53,9 +53,9 @@ class HermesSerializers {
         if (ArrayBuffer.isView(object) || object instanceof ArrayBuffer) return;
 
         if (Array.isArray(object)) {
-            object.forEach((o, i) => this.checkPosibiltySend(o, path + `[${i}]`));
+            object.forEach((o, i) => this.checkPosibilitySend(o, path + `[${i}]`));
         } else if (typeof object === "object" && object) {
-            Object.keys(object).forEach(i => this.checkPosibiltySend(object[i],  path + "." + i));
+            Object.keys(object).forEach(i => this.checkPosibilitySend(object[i],  path + "." + i));
         }
     }
 }
