@@ -46,5 +46,18 @@ const workerFunction = () => {
     hermes.on("time-transfer", (date, bigFile) => {
         console.log(`${new Date().getTime() - date.getTime()}ms`);
     });
+
+    hermes.on("canvas2D", (canvas) => {
+        const ctx = canvas.getContext("2d");
+        ctx.font = "36px serif";
+        let x = 0;
+        setInterval(() => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            x++;
+            ctx.fillText("Hermes Worker !", (x + 50) % canvas.width, 50);
+            ctx.fillText("I'm draw in worker !", (x - 100) % canvas.width, 100);
+        }, 20);
+    });
+
     hermes.ready();
 };

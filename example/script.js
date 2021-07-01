@@ -88,4 +88,12 @@ window.onload = async () => {
     } catch (e) {
         console.log(e);
     }
+
+    const canvas = document.getElementById("canvas2D");
+    const offscreenCanvas = canvas.transferControlToOffscreen();
+    if (navigator.userAgent.indexOf("Firefox") !== -1) {
+        console.warn("This feature (worker context 2d) have a bug in Firefox (see https://bugzilla.mozilla.org/show_bug.cgi?id=801176)");
+    }
+    console.warn("WARNING: OffscreenCanvas is an experimental feature please check your browser compatibility. If you have an error after this line, your browser is probably not supported");
+    worker.call("canvas2D", [offscreenCanvas]);
 };
