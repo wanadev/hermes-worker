@@ -201,7 +201,7 @@ class HermesWorker {
         this._requestQueue.forEach((data) => {
             const worker = this._getNextWorker();
             if (!worker) return this._pendingsCalls[data.id].reject(new Error({ err: "worker not found" }));
-            worker.postMessage(data);
+            worker.postMessage(data, data.arguments.transferable);
         });
 
         this._requestQueue = [];

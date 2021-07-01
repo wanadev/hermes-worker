@@ -57,4 +57,43 @@ window.onload = async () => {
         copyUInt[i] = i;
     }
     await worker.call("time-transfer", [new Date(), { complexObject: copyUInt }]);
+
+    // Try send function Error or DOM Element
+    try {
+        await worker.call("log", [function test() {}]);
+    } catch (e) {
+        console.log(e);
+    }
+
+    try {
+        await worker.call("log", [new Error("TEST")]);
+    } catch (e) {
+        console.log(e);
+    }
+
+    try {
+        await worker.call("log", [document.createElement("p")]);
+    } catch (e) {
+        console.log(e);
+    }
+
+    try {
+        await worker.call("log", [{
+            a: {
+                b: [
+                    0, 1, function test() {},
+                ],
+            },
+        }]);
+    } catch (e) {
+        console.log(e);
+    }
+
+    const canvas = document.getElementById("canvas2D");
+    const offscreenCanvas = canvas.transferControlToOffscreen();
+    if (navigator.userAgent.indexOf("Firefox") !== -1) {
+        console.warn("This feature (worker context 2d) have a bug in Firefox (see https://bugzilla.mozilla.org/show_bug.cgi?id=801176)");
+    }
+    console.warn("WARNING: OffscreenCanvas is an experimental feature please check your browser compatibility. If you have an error after this line, your browser is probably not supported");
+    worker.call("canvas2D", [offscreenCanvas]);
 };
