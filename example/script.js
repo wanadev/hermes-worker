@@ -57,4 +57,35 @@ window.onload = async () => {
         copyUInt[i] = i;
     }
     await worker.call("time-transfer", [new Date(), { complexObject: copyUInt }]);
+
+    // Try send function Error or DOM Element
+    try {
+        await worker.call("log", [function test() {}]);
+    } catch (e) {
+        console.log(e);
+    }
+
+    try {
+        await worker.call("log", [new Error("TEST")]);
+    } catch (e) {
+        console.log(e);
+    }
+
+    try {
+        await worker.call("log", [document.createElement("p")]);
+    } catch (e) {
+        console.log(e);
+    }
+
+    try {
+        await worker.call("log", [{
+            a: {
+                b: [
+                    0, 1, function test() {},
+                ],
+            },
+        }]);
+    } catch (e) {
+        console.log(e);
+    }
 };

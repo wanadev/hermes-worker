@@ -36,6 +36,8 @@ const workerFunction = () => {
         }, number);
     }), { type: "async" });
 
+    hermes.on("log", (...args) => console.log(args));
+
     hermes.on("transferable", obj => null);
     hermes.on("logTypeArray", (typedArray) => {
         console.log(typedArray);
