@@ -212,3 +212,6 @@ hermes.call("length", [new BABYLON.Vector2(2, 0)]).then(result => {
 * **v1.1.0:** 
     * Clean Serializer
     * Fix bug transferable
+* **v1.2.0:** 
+    * Throw error on unsupported type are send
+    * Add possibility to use offscreencanvas
