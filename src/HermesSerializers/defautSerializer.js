@@ -42,7 +42,7 @@ module.exports =  {
                 return acc;
             }
 
-            if (argument instanceof OffscreenCanvas) {
+            if (window.OffscreenCanvas && argument instanceof OffscreenCanvas) {
                 acc.transferable.push(argument);
                 acc.serializedArgs.push({
                     type: "__hermes__transferable__",

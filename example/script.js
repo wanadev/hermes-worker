@@ -89,6 +89,8 @@ window.onload = async () => {
         console.log(e);
     }
 
+    if (!window.OffscreenCanvas) return;
+
     const canvas = document.getElementById("canvas2D");
     const offscreenCanvas = canvas.transferControlToOffscreen();
     if (navigator.userAgent.indexOf("Firefox") !== -1) {
