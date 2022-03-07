@@ -7,7 +7,7 @@
 class HermesMessenger {
     constructor() {
         this.config = {};
-        this._loadedPromise = [];
+        this._loadedPromises = [];
         this._routes = {};
         this.serializers = __serializers__;
         self.addEventListener("message", event => this._onEvent(event.data));
@@ -18,7 +18,7 @@ class HermesMessenger {
      */
     waitLoad() {
         return new Promise((resolve) => {
-            this._loadedPromise.push(resolve);
+            this._loadedPromises.push(resolve);
         });
     }
 
@@ -55,7 +55,7 @@ class HermesMessenger {
     _onEvent(event) {
         if (event.type === "config") {
             this.config = event.data;
-            this._loadedPromise.forEach(resolve => resolve());
+            this._loadedPromises.forEach(resolve => resolve());
         } else if (event.type === "call") {
             this._call(event);
         }
