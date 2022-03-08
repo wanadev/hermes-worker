@@ -234,7 +234,6 @@ class HermesWorker {
      * @param {any} error
      */
     _onWorkerError(error) {
-        console.error(error);
         if (!this.isLoaded) {
             this._loadError = error;
             this._loadedPromises.forEach(({ reject }) => reject(error));
