@@ -229,8 +229,6 @@ class HermesWorker {
     /**
      * Is called from worker in case of thrown error
      *
-     * TODO: Improve error handling
-     *
      * @param {any} error
      */
     _onWorkerError(error) {
