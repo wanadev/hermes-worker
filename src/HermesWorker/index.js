@@ -238,8 +238,8 @@ class HermesWorker {
         if (!this.isLoaded) {
             this._loadError = error;
             this._loadedPromises.forEach(({ reject }) => reject(error));
-            Object.values(this._pendingsCalls).forEach(defer => defer.reject(error));
         }
+        Object.values(this._pendingsCalls).forEach(defer => defer.reject(error));
     }
 
     /**
