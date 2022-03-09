@@ -43,12 +43,13 @@ class HermesWorker {
 
         this._requestQueue = [];
         this._pendingsCalls = {};
-        this._loadedPromise = [];
+        this._loadedPromises = [];
         this._importedScripts = [];
         this._serializers = [defautSerializer, ...this._params.serializers.reverse()];
 
         this.numberOfThreadInstances = this._params.threadInstances;
         this.isLoaded = false;
+        this._loadError = null;
 
         this._serializers.forEach(serializer => this._hermesSerializers.addSerializer(serializer));
 
@@ -191,7 +192,7 @@ class HermesWorker {
         const fullLoaded = this._workerPool.every(workerObject => workerObject.load);
         if (fullLoaded) {
             this.isLoaded = true;
-            this._loadedPromise.forEach(resolve => resolve());
+            this._loadedPromises.forEach(({ resolve }) => resolve());
             this._cleanBlobUrls();
             this._applyQueue();
         }
@@ -228,12 +229,14 @@ class HermesWorker {
     /**
      * Is called from worker in case of thrown error
      *
-     * TODO: Improve error handling
-     *
      * @param {any} error
      */
     _onWorkerError(error) {
-        console.error(error);
+        if (!this.isLoaded) {
+            this._loadError = error;
+            this._loadedPromises.forEach(({ reject }) => reject(error));
+        }
+        Object.values(this._pendingsCalls).forEach(defer => defer.reject(error));
     }
 
     /**
@@ -252,8 +255,9 @@ class HermesWorker {
      */
     waitLoad() {
         if (this.isLoaded) return Promise.resolve();
-        return new Promise((resolve) => {
-            this._loadedPromise.push(resolve);
+        if (this._loadError) return Promise.reject(this._loadError);
+        return new Promise((resolve, reject) => {
+            this._loadedPromises.push({ resolve, reject });
         });
     }
 
@@ -264,6 +268,7 @@ class HermesWorker {
      * @param {any[]} args arguments applied to the function
      */
     call(functionName, args = []) {
+        if (this._loadError) return Promise.reject(this._loadError);
         return new Promise((resolve, reject) => {
 
             const data = {
