@@ -1,6 +1,6 @@
 {
   "name": "hermes-worker",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A simple lib for WebWorker",
   "main": "builds/latest.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "lint": "eslint -c ./.eslintrc.js ./src ./example",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-version": "webpack --config webpack.prod.js",
-    "version": "npm run build-version && git add builds/" 
+    "version": "npm run build-version && git add builds/"
   },
   "repository": {
     "type": "git",
