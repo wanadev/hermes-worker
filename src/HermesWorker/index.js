@@ -171,7 +171,7 @@ class HermesWorker {
             };
 
             this._workerPool[i].worker.onerror = (error) => {
-                this._onWorkerError(error);
+                this._onWorkerError(error, i);
             };
 
             this._workerPool[i].worker.postMessage({
@@ -200,8 +200,9 @@ class HermesWorker {
 
     _applyQueue() {
         this._requestQueue.forEach((data) => {
-            const worker = this._getNextWorker();
+            const { worker, workerIndex } = this._getNextWorker();
             if (!worker) return this._pendingsCalls[data.id].reject(new Error({ err: "worker not found" }));
+            this._pendingsCalls[data.id].workerIndex = workerIndex;
             worker.postMessage(data, data.arguments.transferable);
         });
 
@@ -230,13 +231,16 @@ class HermesWorker {
      * Is called from worker in case of thrown error
      *
      * @param {any} error
+     * @param {number} workerIndex
      */
-    _onWorkerError(error) {
+    _onWorkerError(error, workerIndex) {
         if (!this.isLoaded) {
             this._loadError = error;
             this._loadedPromises.forEach(({ reject }) => reject(error));
         }
-        Object.values(this._pendingsCalls).forEach(defer => defer.reject(error));
+        Object.values(this._pendingsCalls).forEach((pendingCall) => {
+            if (workerIndex === pendingCall.workerIndex) pendingCall.reject(error);
+        });
     }
 
     /**
@@ -247,7 +251,7 @@ class HermesWorker {
         if (nextWorkerIndex === this._workerPool.length) nextWorkerIndex = 0;
 
         this._lastWorkerCall = nextWorkerIndex;
-        return this._workerPool[nextWorkerIndex].worker;
+        return { worker: this._workerPool[nextWorkerIndex].worker, workerIndex: nextWorkerIndex };
     }
 
     /**
@@ -285,8 +289,9 @@ class HermesWorker {
             if (!this.isLoaded) {
                 this._requestQueue.push(data);
             } else {
-                const worker = this._getNextWorker();
+                const { worker, workerIndex } = this._getNextWorker();
                 if (!worker) return reject(new Error({ err: "worker not found" }));
+                this._pendingsCalls[data.id].workerIndex = workerIndex;
                 worker.postMessage(data, data.arguments.transferable);
             }
         });
