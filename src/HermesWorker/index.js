@@ -224,6 +224,11 @@ class HermesWorker {
 
             this._pendingsCalls[answer.id].resolve(this._hermesSerializers.unserializeArgs(answer.result)[0]);
             delete this._pendingsCalls[answer.id];
+        } else if (answer.type === "error") {
+            if (!this._pendingsCalls[answer.id]) return;
+
+            this._pendingsCalls[answer.id].reject(answer.error);
+            delete this._pendingsCalls[answer.id];
         }
     }
 

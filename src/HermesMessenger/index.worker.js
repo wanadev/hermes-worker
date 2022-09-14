@@ -57,7 +57,9 @@ class HermesMessenger {
             this.config = event.data;
             this._loadedPromises.forEach(resolve => resolve());
         } else if (event.type === "call") {
-            this._call(event);
+            this._call(event).catch((error) => {
+                this._sendError(event, error);
+            });
         }
     }
 
@@ -94,6 +96,14 @@ class HermesMessenger {
             id: data.id,
             result,
         }, result.transferable);
+    }
+
+    _sendError(data, error) {
+        this._sendEvent({
+            type: "error",
+            id: data.id,
+            error,
+        });
     }
 
     _sendEvent(data, transferable = []) {
